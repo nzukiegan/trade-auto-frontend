@@ -27,8 +27,8 @@ const AccountManager = () => {
   const fetchAccountStats = async () => {
     try {
       const [rulesResponse, tradesResponse] = await Promise.all([
-        tradingAPI.get('/rules/stats'),
-        tradingAPI.get('/trading/trades?limit=1')
+        tradingAPI.get('/api/rules/stats'),
+        tradingAPI.get('/api/trading/trades?limit=1')
       ]);
 
       setAccountStats({
@@ -43,7 +43,7 @@ const AccountManager = () => {
 
   const fetchPortfolio = async () => {
     try {
-      const response = await tradingAPI.get('/users/portfolio');
+      const response = await tradingAPI.get('/api/users/portfolio');
       setPortfolio(response.data);
     } catch (error) {
       console.error('Error fetching portfolio:', error);

@@ -36,7 +36,7 @@ function RuleManager({ marketData, portfolioData }) {
 
   const fetchRules = async () => {
     try {
-      const response = await tradingAPI.get('/rules');
+      const response = await tradingAPI.get('/api/rules');
       const data = response.data;
       const ruleList = Array.isArray(data) ? data : data.rules || [];
       setRules(ruleList);
@@ -48,7 +48,7 @@ function RuleManager({ marketData, portfolioData }) {
 
   const fetchMarkets = async () => {
     try {
-      const response = await tradingAPI.get('/markets');
+      const response = await tradingAPI.get('/api/markets');
       console
       setMarkets(response.data);
     } catch (error) {
@@ -123,7 +123,7 @@ function RuleManager({ marketData, portfolioData }) {
     setLoading(true);
     
     try {
-      await tradingAPI.post('/rules', formData);
+      await tradingAPI.post('/api/rules', formData);
       setShowForm(false);
       setFormData({
         name: '',
@@ -156,7 +156,7 @@ function RuleManager({ marketData, portfolioData }) {
 
   const toggleRule = async (ruleId, isActive) => {
     try {
-      await tradingAPI.patch(`/rules/${ruleId}`, {
+      await tradingAPI.patch(`/api/rules/${ruleId}`, {
         isActive: !isActive
       });
       fetchRules();
@@ -169,7 +169,7 @@ function RuleManager({ marketData, portfolioData }) {
     if (!window.confirm('Are you sure you want to delete this rule?')) return;
     
     try {
-      await tradingAPI.delete(`/rules/${ruleId}`);
+      await tradingAPI.delete(`/api/rules/${ruleId}`);
       fetchRules();
     } catch (error) {
       console.error('Error deleting rule:', error);

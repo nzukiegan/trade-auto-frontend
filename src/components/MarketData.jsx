@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { tradingAPI } from '../services/api';
 import './MarketData.css';
 
 const MarketData = ({ marketData }) => {

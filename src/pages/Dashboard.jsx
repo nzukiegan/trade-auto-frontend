@@ -17,7 +17,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchMarkets = async () => {
       try {
-        const response = await tradingAPI.get("/markets");
+        const response = await tradingAPI.get("/api/markets");
         setMarketData(response.data.markets || []);
       } catch (error) {
         console.error("❌ Error fetching markets:", error);

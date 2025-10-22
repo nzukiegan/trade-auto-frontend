@@ -51,7 +51,7 @@ export class WebSocketService {
     }
 
     this._shouldReconnect = true;
-    this.ws = new WebSocket(`ws://localhost:5000?userId=${this.userId}`);
+    this.ws = new WebSocket(`${import.meta.env.VITE_BACKEND_WS}?userId=${this.userId}`);
 
     this.ws.onopen = () => {
       console.log('WebSocket connected with userId:', this.userId);
