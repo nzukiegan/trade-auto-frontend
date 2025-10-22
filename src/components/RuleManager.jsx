@@ -310,7 +310,6 @@ function RuleManager({ marketData, portfolioData }) {
                     onChange={(e) => handleTriggerTypeChange(e.target.value)}
                   >
                     <option value="probability">Probability Trigger</option>
-                    <option value="roi">ROI Trigger</option>
                     <option value="price">Price Trigger</option>
                   </select>
                 </div>
