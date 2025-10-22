@@ -31,8 +31,8 @@ const MarketData = ({ marketData }) => {
 
   const getOutcomePrices = (market) => {
     try {
-      const outcomes = JSON.parse(market.outcomes || '[]');
-      const prices = market.outcomePrices || '[]';
+      const outcomes = typeof market.outcomes === 'string' ? JSON.parse(market.outcomes || '[]') : market.outcomes || [];
+      const prices = Array.isArray(market.outcomePrices) ? market.outcomePrices : JSON.parse(market.outcomePrices || '[]');
       return outcomes.map((name, i) => ({
         name,
         price: prices[i] ?? 0
@@ -61,7 +61,7 @@ const MarketData = ({ marketData }) => {
         {outcomes.map((outcome, i) => (
           <div key={i} className="price-section">
             <div className="price-label">{outcome.name}</div>
-            <div className="price-value">{formatPrice(outcome.price)}</div>
+            <div className="price-value">{formatPrice((outcome.price * 100).toFixed(1))}</div>
             <div className="price-percentage">{(outcome.price * 100).toFixed(1)}%</div>
           </div>
         ))}
@@ -115,8 +115,8 @@ const MarketData = ({ marketData }) => {
         ) : (
           filteredMarkets.map((market) => {
             const isLive = marketData?.[market.marketId];
-            const priceChange = market.priceChange;
-
+            const priceChange = isNaN(market.priceChange) ? 0 : market.priceChange;
+            console.log("price change", priceChange);
             return (
               <div key={market.marketId} className="market-card">
                 <div className="market-header">

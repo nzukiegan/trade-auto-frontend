@@ -739,7 +739,9 @@ function RuleManager({ marketData, portfolioData }) {
                   </div>
                   
                   <div className="rule-meta">
-                    <span>Market: {rule.marketId}</span>
+                     <span>
+                      Market: {marketData.find(m => m.marketId === rule.marketId)?.title || rule.marketId}
+                    </span>
                     {rule.lastTriggered && (
                       <span>Last Triggered: {new Date(rule.lastTriggered).toLocaleString()}</span>
                     )}

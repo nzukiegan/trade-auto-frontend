@@ -73,19 +73,17 @@ function Dashboard() {
 
   const handleMarketData = useCallback((msg) => {
     if (!msg || !msg.type) return;
-
     if (msg.type === "connection_status") {
       setConnectionStatus(msg.status);
       return;
     }
 
-    if (msg.type === "market_data") {
-      const { data } = msg;
+    if (msg.type === "pdata") {
+      const { data } = msg
       if (!data || !data.event_type) return;
 
       setMarketData((prev) => {
         const eps = 1e-9;
-
         const parseTokenIds = (raw) => {
           if (!raw && raw !== 0) return [];
           if (Array.isArray(raw)) {
@@ -111,7 +109,7 @@ function Dashboard() {
           }
           return [];
         };
-
+        
         const updatedList = prev.map((m) => {
           const updated = { ...m };
           let didUpdate = false;
@@ -127,16 +125,19 @@ function Dashboard() {
 
           const newPrices = oldPrices.slice();
 
+
           if (data.event_type === "price_change" && Array.isArray(data.price_changes)) {
             const tokenIds = parseTokenIds(updated.clobTokenIds);
 
             for (const change of data.price_changes) {
               const { asset_id, price, best_bid, best_ask } = change;
-              const idx = tokenIds.indexOf(asset_id);
+              let s = String(asset_id);
+              const idx = tokenIds.indexOf(s);
               if (idx === -1) continue;
-
+              
               const newPrice = parseFloat(price);
               if (!isNaN(newPrice) && Math.abs(newPrice - oldPrices[idx]) > eps) {
+                updated.priceChange = ((newPrice - oldPrices[idx]) / (oldPrices[idx] || 1)) * 100;
                 newPrices[idx] = newPrice;
                 didUpdate = true;
               }
@@ -149,6 +150,7 @@ function Dashboard() {
             }
 
             if (didUpdate) {
+              console.log("updated", newPrices)
               updated.outcomePrices = newPrices;
               updated.lastUpdated = new Date().toISOString();
             }

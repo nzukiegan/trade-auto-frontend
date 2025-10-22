@@ -125,7 +125,6 @@ const AccountManager = () => {
       <div className="section-header">
         <div className="section-title">
           <h2>Account Management</h2>
-          <p>Manage your API keys and account settings</p>
         </div>
       </div>
 
@@ -186,97 +185,6 @@ const AccountManager = () => {
 
         {/* API Keys Management */}
         <div className="api-keys-section">
-          <div className="api-keys-card">
-            <h3>API Keys Configuration</h3>
-            <p className="card-description">
-              Add your API keys to enable automated trading. Keys are stored securely and encrypted.
-            </p>
-
-            {message.text && (
-              <div className={`alert ${message.type}`}>
-                {message.text}
-              </div>
-            )}
-
-            <form onSubmit={handleApiKeySubmit}>
-              {/* Kalshi API Keys */}
-              <div className="api-platform-section">
-                <div className="platform-header">
-                  <h4>Kalshi API</h4>
-                  <button 
-                    type="button"
-                    className="btn-test"
-                    onClick={() => testConnection('Kalshi')}
-                  >
-                    Test Connection
-                  </button>
-                </div>
-                
-                <div className="form-group">
-                  <label>API Key</label>
-                  <input
-                    type="password"
-                    value={apiKeys.kalshiApiKey}
-                    onChange={(e) => handleInputChange('kalshiApiKey', e.target.value)}
-                    placeholder="Enter your Kalshi API key"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>API Secret</label>
-                  <input
-                    type="password"
-                    value={apiKeys.kalshiSecret}
-                    onChange={(e) => handleInputChange('kalshiSecret', e.target.value)}
-                    placeholder="Enter your Kalshi API secret"
-                  />
-                </div>
-              </div>
-
-              {/* Polymarket API Keys */}
-              <div className="api-platform-section">
-                <div className="platform-header">
-                  <h4>Polymarket API</h4>
-                  <button 
-                    type="button"
-                    className="btn-test"
-                    onClick={() => testConnection('Polymarket')}
-                  >
-                    Test Connection
-                  </button>
-                </div>
-                
-                <div className="form-group">
-                  <label>API Key</label>
-                  <input
-                    type="password"
-                    value={apiKeys.polymarketApiKey}
-                    onChange={(e) => handleInputChange('polymarketApiKey', e.target.value)}
-                    placeholder="Enter your Polymarket API key"
-                  />
-                </div>
-              </div>
-
-              <button 
-                type="submit" 
-                className="btn-primary save-keys"
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save API Keys'}
-              </button>
-            </form>
-
-            <div className="api-notes">
-              <h5>Important Notes:</h5>
-              <ul>
-                <li>API keys are encrypted and stored securely</li>
-                <li>Never share your API keys with anyone</li>
-                <li>Ensure your API keys have appropriate trading permissions</li>
-                <li>Test connections after adding new keys</li>
-              </ul>
-            </div>
-          </div>
-
           {/* Portfolio Overview */}
           {portfolio && (
             <div className="portfolio-card">
@@ -313,44 +221,6 @@ const AccountManager = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Security Settings */}
-      <div className="security-section">
-        <div className="security-card">
-          <h3>Security Settings</h3>
-          <div className="security-options">
-            <div className="security-item">
-              <div className="security-info">
-                <h5>Two-Factor Authentication</h5>
-                <p>Add an extra layer of security to your account</p>
-              </div>
-              <button className="btn-outline">
-                Enable 2FA
-              </button>
-            </div>
-            
-            <div className="security-item">
-              <div className="security-info">
-                <h5>Session Management</h5>
-                <p>View and manage active sessions</p>
-              </div>
-              <button className="btn-outline">
-                Manage Sessions
-              </button>
-            </div>
-            
-            <div className="security-item">
-              <div className="security-info">
-                <h5>API Key Rotation</h5>
-                <p>Generate new API keys and revoke old ones</p>
-              </div>
-              <button className="btn-outline">
-                Rotate Keys
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
