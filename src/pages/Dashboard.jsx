@@ -221,6 +221,7 @@ useEffect(() => {
     { id: "markets", label: "Market Data", icon: "📊" },
     { id: "rules", label: "Trading Rules", icon: "⚡" },
     { id: "accounts", label: "Accounts", icon: "👤" },
+    { id: "trades", label: "Trades", icon: "🦸‍♀️" },
   ];
 
   return (
@@ -267,9 +268,8 @@ useEffect(() => {
         <div className="main-content">
           {activeTab === "rules" && <RuleManager marketData={marketData} />}
           {activeTab === "markets" && <MarketData marketData={marketData} />}
-          {activeTab === "trading" && <TradingPanel marketData={marketData} />}
+          {activeTab === "trades" && <TradingPanel marketData={marketData}/>}
           {activeTab === "accounts" && <AccountManager />}
-          {activeTab === "live" && <LiveDataFeed marketData={marketData} />}
         </div>
       </main>
     </div>
