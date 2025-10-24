@@ -115,7 +115,6 @@ const MarketData = ({ marketData }) => {
           filteredMarkets.map((market) => {
             const isLive = marketData?.[market.marketId];
             const priceChange = isNaN(market.priceChange) ? 0 : market.priceChange;
-            console.log("price change", priceChange);
             return (
               <div key={market.marketId} className="market-card">
                 <div className="market-header">

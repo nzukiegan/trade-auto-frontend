@@ -150,7 +150,6 @@ function Dashboard() {
             }
 
             if (didUpdate) {
-              console.log("updated", newPrices)
               updated.outcomePrices = newPrices;
               updated.lastUpdated = new Date().toISOString();
             }

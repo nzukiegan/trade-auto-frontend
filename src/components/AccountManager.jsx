@@ -7,9 +7,9 @@ const AccountManager = () => {
   const { user, updateApiKeys } = useAuth();
   const [apiKeys, setApiKeys] = useState({
     kalshiApiKey: '',
-    kalshiSecret: '',
-    polymarketApiKey: ''
-  });
+    kalshiPrivateKeyPath: '',
+    polymarketWalletKey: ''
+  })
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [portfolio, setPortfolio] = useState(null);
@@ -18,10 +18,15 @@ const AccountManager = () => {
     activeRules: 0,
     totalProfit: 0
   });
+  const [connectionStatus, setConnectionStatus] = useState({
+    kalshi: 'disconnected',
+    polymarket: 'disconnected'
+  });
 
   useEffect(() => {
     fetchAccountStats();
     fetchPortfolio();
+    checkConnectionStatus();
   }, []);
 
   const fetchAccountStats = async () => {
@@ -34,7 +39,7 @@ const AccountManager = () => {
       setAccountStats({
         totalTrades: tradesResponse.data.pagination?.total || 0,
         activeRules: rulesResponse.data.stats?.reduce((sum, stat) => sum + stat.active, 0) || 0,
-        totalProfit: 0 // This would come from a separate endpoint
+        totalProfit: 0
       });
     } catch (error) {
       console.error('Error fetching account stats:', error);
@@ -50,28 +55,69 @@ const AccountManager = () => {
     }
   };
 
-  const handleApiKeySubmit = async (e) => {
-    e.preventDefault();
+  const checkConnectionStatus = async () => {
+    try {
+      // Check Kalshi connection
+      const kalshiResponse = await tradingAPI.get('/api/trading/kalshi/status');
+      setConnectionStatus(prev => ({
+        ...prev,
+        kalshi: kalshiResponse.data.connected ? 'connected' : 'disconnected'
+      }));
+
+      // Check Polymarket connection
+      const polyResponse = await tradingAPI.get('/api/trading/polymarket/status');
+      setConnectionStatus(prev => ({
+        ...prev,
+        polymarket: polyResponse.data.connected ? 'connected' : 'disconnected'
+      }));
+    } catch (error) {
+      console.error('Error checking connection status:', error);
+    }
+  };
+
+  const handleApiKeySubmit = async (platform) => {
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      const result = await updateApiKeys(
-        apiKeys.kalshiApiKey,
-        apiKeys.kalshiSecret,
-        apiKeys.polymarketApiKey
-      );
+      const payload = {
+        [platform]: {
+          ...(platform === 'kalshi' && {
+            apiKey: apiKeys.kalshiApiKey,
+            privateKeyPath: apiKeys.kalshiPrivateKeyPath
+          }),
+          ...(platform === 'polymarket' && {
+            walletKey: apiKeys.polymarketWalletKey
+          })
+        }
+      };
+
+      
+
+      const result = await updateApiKeys(payload);
 
       if (result.success) {
         setMessage({
           type: 'success',
-          text: 'API keys updated successfully!'
+          text: `${platform.charAt(0).toUpperCase() + platform.slice(1)} API keys updated successfully!`
         });
-        setApiKeys({
-          kalshiApiKey: '',
-          kalshiSecret: '',
-          polymarketApiKey: ''
-        });
+        
+        // Clear only the submitted platform's fields
+        if (platform === 'kalshi') {
+          setApiKeys(prev => ({
+            ...prev,
+            kalshiApiKey: '',
+            kalshiPrivateKeyPath: ''
+          }));
+        } else if (platform === 'polymarket') {
+          setApiKeys(prev => ({
+            ...prev,
+            polymarketWalletKey: ''
+          }));
+        }
+
+        // Re-check connection status
+        await checkConnectionStatus();
       } else {
         setMessage({
           type: 'error',
@@ -81,7 +127,7 @@ const AccountManager = () => {
     } catch (error) {
       setMessage({
         type: 'error',
-        text: 'Failed to update API keys'
+        text: `Failed to update ${platform} API keys: ${error.message}`
       });
     } finally {
       setLoading(false);
@@ -99,25 +145,95 @@ const AccountManager = () => {
     setMessage({ type: '', text: '' });
     
     try {
-      // This would actually test the API connection
       setMessage({
         type: 'info',
         text: `Testing ${platform} connection...`
       });
 
-      // Simulate API test
-      setTimeout(() => {
+      const response = await tradingAPI.get(`/api/trading/${platform}/test`);
+      
+      if (response.data.connected) {
         setMessage({
           type: 'success',
-          text: `${platform} connection successful!`
+          text: `${platform.charAt(0).toUpperCase() + platform.slice(1)} connection successful!`
         });
-      }, 1000);
+        setConnectionStatus(prev => ({
+          ...prev,
+          [platform]: 'connected'
+        }));
+      } else {
+        setMessage({
+          type: 'error',
+          text: `${platform.charAt(0).toUpperCase() + platform.slice(1)} connection failed: ${response.data.message}`
+        });
+        setConnectionStatus(prev => ({
+          ...prev,
+          [platform]: 'disconnected'
+        }));
+      }
     } catch (error) {
       setMessage({
         type: 'error',
-        text: `${platform} connection failed: ${error.message}`
+        text: `${platform.charAt(0).toUpperCase() + platform.slice(1)} connection failed: ${error.message}`
+      });
+      setConnectionStatus(prev => ({
+        ...prev,
+        [platform]: 'disconnected'
+      }));
+    }
+  };
+
+  const connectMetamask = async () => {
+    setMessage({ type: '', text: '' });
+    
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        setMessage({
+          type: 'info',
+          text: 'Please connect your MetaMask wallet...'
+        });
+
+        // Request account access
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
+        });
+
+        const account = accounts[0];
+        
+        setMessage({
+          type: 'success',
+          text: `MetaMask connected: ${account.substring(0, 8)}...`
+        });
+
+        // Auto-fill the wallet key field
+        setApiKeys(prev => ({
+          ...prev,
+          polymarketWalletKey: account
+        }));
+
+      } else {
+        setMessage({
+          type: 'error',
+          text: 'MetaMask not detected. Please install MetaMask first.'
+        });
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: `MetaMask connection failed: ${error.message}`
       });
     }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusConfig = {
+      connected: { class: 'status-connected', label: 'Connected' },
+      disconnected: { class: 'status-disconnected', label: 'Disconnected' },
+      connecting: { class: 'status-connecting', label: 'Connecting' }
+    };
+    
+    const config = statusConfig[status] || statusConfig.disconnected;
+    return <span className={`status-badge ${config.class}`}>{config.label}</span>;
   };
 
   return (
@@ -128,9 +244,17 @@ const AccountManager = () => {
         </div>
       </div>
 
+      {/* Message Display */}
+      {message.text && (
+        <div className={`message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
       <div className="account-layout">
-        {/* User Profile */}
-        <div className="profile-section">
+        {/* Left Column - Profile and Stats */}
+        <div className="left-column">
+          {/* User Profile */}
           <div className="profile-card">
             <h3>Profile Information</h3>
             <div className="profile-info">
@@ -183,8 +307,102 @@ const AccountManager = () => {
           </div>
         </div>
 
-        {/* API Keys Management */}
-        <div className="api-keys-section">
+        {/* Right Column - API Configuration */}
+        <div className="right-column">
+          <div className="api-config-card">
+            <div className="api-config-header">
+              <h3>Kalshi API Configuration</h3>
+            </div>
+            
+            <div className="api-config-content">
+              <div className="form-group">
+                <label htmlFor="kalshiApiKey">Kalshi API Key ID</label>
+                <input
+                  id="kalshiApiKey"
+                  type="text"
+                  value={apiKeys.kalshiApiKey}
+                  onChange={(e) => handleInputChange('kalshiApiKey', e.target.value)}
+                  placeholder="Enter your Kalshi API Key ID"
+                  className="form-input"
+                />
+                <small className="form-help">
+                  Find this in your Kalshi account settings under API Keys
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="kalshiPrivateKeyPath">Kalshi Private Key Path</label>
+                <input
+                  id="kalshiPrivateKeyPath"
+                  type="text"
+                  value={apiKeys.kalshiPrivateKeyPath}
+                  onChange={(e) => handleInputChange('kalshiPrivateKeyPath', e.target.value)}
+                  placeholder="/path/to/your/private/key.pem"
+                  className="form-input"
+                />
+                <small className="form-help">
+                  Absolute path to your Kalshi private key file on the server
+                </small>
+              </div>
+
+              <div className="api-actions">
+                <button
+                  className="btn-primary"
+                  onClick={() => handleApiKeySubmit('kalshi')}
+                  disabled={loading || !apiKeys.kalshiApiKey || !apiKeys.kalshiPrivateKeyPath}
+                >
+                  {loading ? 'Saving...' : 'Save Kalshi Keys'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Polymarket API Configuration */}
+          <div className="api-config-card">
+            <div className="api-config-header">
+              <h3>Polymarket Configuration</h3>
+            </div>
+            
+            <div className="api-config-content">
+              <div className="form-group">
+                <label htmlFor="polymarketWalletKey">Wallet Private Key</label>
+                <div className="wallet-input-group">
+                  <input
+                    id="polymarketWalletKey"
+                    type="password"
+                    value={apiKeys.polymarketWalletKey}
+                    onChange={(e) => handleInputChange('polymarketWalletKey', e.target.value)}
+                    placeholder="Enter your wallet private key"
+                    className="form-input"
+                  />
+                </div>
+                <small className="form-help warning">
+                  ⚠️ Never share your private key. This should be from a dedicated trading wallet.
+                </small>
+              </div>
+
+              <div className="security-notice">
+                <h4>Security Recommendations</h4>
+                <ul>
+                  <li>Use a dedicated wallet for trading with limited funds</li>
+                  <li>Never use your main wallet's private key</li>
+                  <li>Consider using a hardware wallet for maximum security</li>
+                  <li>Regularly monitor your connected wallets</li>
+                </ul>
+              </div>
+
+              <div className="api-actions">
+                <button
+                  className="btn-primary"
+                  onClick={() => handleApiKeySubmit('polymarket')}
+                  disabled={loading || !apiKeys.polymarketWalletKey}
+                >
+                  {loading ? 'Saving...' : 'Save Wallet Key'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Portfolio Overview */}
           {portfolio && (
             <div className="portfolio-card">

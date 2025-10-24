@@ -40,7 +40,7 @@ const TradingPanel = ({ marketData }) => {
     console.log("Fetching trades")
     setLoading(true);
     try {
-      const response = await tradingAPI.get('/trading/trades', { params: filters });
+      const response = await tradingAPI.get('/api/trading/trades', { params: filters });
       console.log(response)
       const data = response.data;
       

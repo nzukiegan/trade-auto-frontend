@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
 
   const updateApiKeys = async (kalshiApiKey, kalshiSecret, polymarketApiKey) => {
     try {
-      const response = await authAPI.put('/users/api-keys', {
+      const response = await authAPI.put('/api/users/api-keys', {
         kalshiApiKey,
         kalshiSecret,
         polymarketApiKey
