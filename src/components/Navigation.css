@@ -1,0 +1,57 @@
+.navigation-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: white;
+  z-index: 100;
+}
+
+/* Navigation bar wrapper */
+.navigation {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 10px 0;
+}
+
+/* Each button */
+.nav-button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+/* Icon */
+.nav-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* Label */
+.nav-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Hover & active states */
+.nav-button:hover {
+  color: #e5e7eb;
+}
+
+.nav-button.active {
+  color: #14b8a6;
+}
