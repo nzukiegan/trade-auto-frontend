@@ -44,18 +44,18 @@ class ApiService {
 }
 
   async getTodayEarnings(){
-    const response = await this.client.get('/users/today-earnings');
+    const response = await this.client.get('/api/users/today-earnings');
     return response.data;
   }
 
   async recordAdView(){
-    const response = await this.client.post('/tasks/record-complete');
+    const response = await this.client.post('/api/tasks/record-complete');
     return response.data;
   }
 
   async handleEndTask(task) {
     try {
-      const response = await this.client.post('/ads/task-complete', {
+      const response = await this.client.post('/api/ads/task-complete', {
         taskId: task._id,
       });
       console.log('Ad view recorded:', response.data);
@@ -68,12 +68,12 @@ class ApiService {
 
 
   async canUserWatchAd(){
-    const response = await this.client.get('/ads/can-watch');
+    const response = await this.client.get('/api/ads/can-watch');
     return response.data;
   }
 
   async getAvailableTasks(){
-    const response = await this.client.get('/tasks/today-tasks');
+    const response = await this.client.get('/api/tasks/today-tasks');
     console.log("Task response ", response);
     return response.data;
   }
@@ -87,48 +87,48 @@ class ApiService {
   }
 
   async loadMiningLevels(){
-    const response = await this.client.get('/mining/levels');
+    const response = await this.client.get('/api/mining/levels');
     return response.data;
   }
 
   async getReferralsOfMonth(){
-    const response = await this.client.get('/users/month-referrals');
+    const response = await this.client.get('/api/users/month-referrals');
     return response.data;
   }
 
   async getUserProfile() {
-    const response = await this.client.get('/users/profile');
+    const response = await this.client.get('/api/users/profile');
     return response.data;
   }
 
   async claimDailyPoints() {
-    const response = await this.client.post('/users/daily-claim');
+    const response = await this.client.post('/api/users/daily-claim');
     return response.data;
   }
 
   async upgradeMiningLevel() {
-    const response = await this.client.post('/users/upgrade-level');
+    const response = await this.client.post('/api/users/upgrade-level');
     return response.data;
   }
 
   async watchAd(adId, network = 'adsgram') {
-    const response = await this.client.post('/users/watch-ad', { adId, network });
+    const response = await this.client.post('/api/users/watch-ad', { adId, network });
     return response.data;
   }
 
   async getAvailableAds(network = 'adsgram') {
-    const response = await this.client.get('/users/ads', { params: { network } });
+    const response = await this.client.get('/api/users/ads', { params: { network } });
     return response.data;
   }
 
   async createPrediction(predictionData) {
-    const response = await this.client.post('/predictions/create', predictionData);
+    const response = await this.client.post('/api/predictions/create', predictionData);
     console.log(response);
     return response.data;
   }
 
   async placeBet(predictionId, betType, amount, userAddress) {
-    const response = await this.client.post('/predictions/bet', {
+    const response = await this.client.post('/api/predictions/bet', {
       predictionId,
       betType,
       amount,
@@ -138,65 +138,65 @@ class ApiService {
   }
 
   async getMarketVolumeChange24hr(){
-    const response = await this.client.get('/predictions/marketVolumeChange24hr')
+    const response = await this.client.get('/api/predictions/marketVolumeChange24hr')
     return response.data;
   }
 
   async loadAirdropInfo(walletAddress){
-    const response = await this.client.get(`/airdrop/status/${walletAddress}`)
+    const response = await this.client.get(`/api/airdrop/status/${walletAddress}`)
     return response.data;
   }
 
   async getActiveMarketsChange24hr(){
-    const response = await this.client.get('/predictions/activeMarketsChange24hr')
+    const response = await this.client.get('/api/predictions/activeMarketsChange24hr')
     return response.data;
   }
 
   async getAllPredictions(page = 1, status = "all") {
-    const response = await this.client.get('/predictions/all', {
+    const response = await this.client.get('/api/predictions/all', {
       params: { status }
     });
     return response.data;
   }
 
   async getTrendingPredictions(page = 1, category = "all"){
-    const response = await this.client.get('/predictions/trending', {
+    const response = await this.client.get('/api/predictions/trending', {
       params: { page, category }
     });
     return response.data;
   }
 
   async getActivePredictions(page = 1, limit = 10) {
-    const response = await this.client.get('/predictions/active', {
+    const response = await this.client.get('/api/predictions/active', {
       params: { page, limit }
     });
     return response.data;
   }
 
   async getUserPredictions(page = 1, limit = 10) {
-    const response = await this.client.get('/predictions/my-predictions', {
+    const response = await this.client.get('/api/predictions/my-predictions', {
       params: { page, limit }
     });
     return response.data;
   }
 
   async connectWallet(walletAddress) {
-    const response = await this.client.post('/wallet/connect', { walletAddress });
+    const response = await this.client.post('/api/wallet/connect', { walletAddress });
     return response.data;
   }
 
   async getWalletInfo() {
-    const response = await this.client.get('/wallet/info');
+    const response = await this.client.get('/api/wallet/info');
     return response.data;
   }
 
   async withdrawUSDT(amount) {
-    const response = await this.client.post('/wallet/withdraw', { amount });
+    const response = await this.client.post('/api/wallet/withdraw', { amount });
     return response.data;
   }
 
   async getLeaderboard(page = 1, limit = 20) {
-    const response = await this.client.get('/leaderboard', {
+    const response = await this.client.get('/api/leaderboard', {
       params: { page, limit }
     });
     return response.data;
