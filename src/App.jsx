@@ -1,4 +1,6 @@
 // src/App.jsx
+import { Buffer } from "buffer";
+window.Buffer = Buffer;
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider, useApp } from './contexts/AppContext.jsx';
