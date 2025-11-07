@@ -79,7 +79,7 @@ class ApiService {
   }
 
   async login(telegramData) {
-    const response = await this.client.post('/auth/telegram', telegramData);
+    const response = await this.client.post('/api/auth/telegram', telegramData);
     if (response.data.token) {
       localStorage.setItem('authToken', response.data.token);
     }
