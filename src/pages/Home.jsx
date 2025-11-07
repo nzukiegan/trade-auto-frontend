@@ -12,7 +12,7 @@ import WebApp from "@twa-dev/sdk";
 import { TonConnectUI } from "@tonconnect/ui";
 import { API_BASE_URL } from '../config/env.js';
 import { Copy } from "lucide-react";
-import { TREASURY_WALLET_ADDRESS } from "../config/env.js"
+import { TREASURY_WALLET_ADDRESS, TON_MANIFEST_URL, COINGECKO_PRICE_URL} from "../config/env.js"
 
 export default function Home() {
   const [telegramId, setTelegramId] = useState(null);
@@ -38,7 +38,7 @@ export default function Home() {
   }, []);
 
   const tonConnectUI = new TonConnectUI({
-    manifestUrl: "http://localhost/tonconnect-manifest.json"
+    manifestUrl: TON_MANIFEST_URL
   });
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function Home() {
 
   async function convertTonToUsd(tonAmount = 1) {
     try {
-      const url = "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd";
+      const url = COINGECKO_PRICE_URL;
       const response = await fetch(url);
 
       if (!response.ok) {
