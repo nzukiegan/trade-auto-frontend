@@ -197,7 +197,7 @@ const Earn = () => {
             {(user?.progress ?? 0)} / 100 USDT
           </div>
           <div className="text-xs text-gray-400">
-            {100 - progress} USDT left for next bonus!
+            {100 - user.progress} USDT left for next bonus!
           </div>
         </div>
 
