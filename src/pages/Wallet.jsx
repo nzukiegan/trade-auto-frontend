@@ -151,10 +151,7 @@ export default function TapxWallet() {
       alert("❌ Withdraw failed.");
     }
   };
-
-  /** ========================
-   *  INITIAL LOAD
-   * ======================== */
+  
   useEffect(() => {
     loadStoredWallet();
   }, []);
