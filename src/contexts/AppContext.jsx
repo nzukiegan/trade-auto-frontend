@@ -7,7 +7,7 @@ const initialState = {
   user: null,
   loading: true,
   miningData: {
-    level: 4,
+    level: 0,
     energy: 0,
     points: 0,
     totalPoints: 0,
@@ -81,6 +81,7 @@ export function AppProvider({ children }) {
       const token = localStorage.getItem('authToken');
       if (token) {
         const userData = await apiService.getUserProfile();
+        console.log("user data ", userData);
         dispatch({ type: 'SET_USER', payload: userData.user });
         
         await loadWalletInfo();
@@ -107,6 +108,7 @@ export function AppProvider({ children }) {
   const loadPredictions = async () => {
     try {
       const predictionsData = await apiService.getAllPredictions();
+      console.log("Predictions data ", predictionsData)
       dispatch({ type: 'SET_PREDICTIONS', payload: predictionsData.predictions });
     } catch (error) {
       console.error('Failed to load predictions:', error);
@@ -116,7 +118,7 @@ export function AppProvider({ children }) {
   const loadLeaderboard = async () => {
     try {
       const leaderboardData = await apiService.getLeaderboard();
-      dispatch({ type: 'SET_LEADERBOARD', payload: leaderboardData.users });
+      dispatch({ type: 'SET_LEADERBOARD', payload: leaderboardData.leaderboard });
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
     }

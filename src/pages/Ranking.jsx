@@ -20,6 +20,8 @@ const Ranking = () => {
     setUserRank(userIndex !== -1 ? userIndex + 1 : leaderboard.length + 1);
   };
 
+  console.log("Leaderboard ", leaderboard)
+
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800 px-4 py-6 flex justify-center">
       <div className="w-full max-w-sm">

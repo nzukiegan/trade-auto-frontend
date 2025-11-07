@@ -6,6 +6,7 @@ import apiService from "../services/api.js";
 import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
+import { TonConnectUI } from "@tonconnect/ui";
 import { TON_RPC_URL } from "../config/env.js";
 
 export default function TapxWallet() {
@@ -20,8 +21,6 @@ export default function TapxWallet() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawTo, setWithdrawTo] = useState("");
   const [activeTab, setActiveTab] = useState("Withdrawals");
-
-  // ➕ New States
   const [withdrawals, setWithdrawals] = useState([]);
   const [airdropInfo, setAirdropInfo] = useState(null);
   const [claiming, setClaiming] = useState(false);
@@ -29,24 +28,15 @@ export default function TapxWallet() {
   const iconMap = { TON: tonIcon, USDt: usdIcon };
   const client = new TonClient({ endpoint: TON_RPC_URL });
 
-  /** ========================
-   *  WALLET CONNECTION
-   * ======================== */
+
+  const connector = new TonConnectUI({
+    manifestUrl: TON_MANIFEST_URL,
+  });
+
   const handleConnectWallet = async () => {
-    try {
-      const tc = new TonConnect();
-      await tc.restoreConnection();
-      const connectedWallet = await tc.connectWallet();
-      if (connectedWallet) {
-        const address = connectedWallet.account.address;
-        setWalletConnected(true);
-        setWalletAddress(address);
-        localStorage.setItem("my_wallet_address", address);
-      }
-    } catch (err) {
-      console.error("Wallet connection failed:", err);
-    }
+    await connector.connectWallet();
   };
+
 
   const loadStoredWallet = async () => {
     const savedAddress = localStorage.getItem("my_wallet_address");
@@ -56,9 +46,6 @@ export default function TapxWallet() {
     }
   };
 
-  /** ========================
-   *  LOAD ASSETS FROM TON
-   * ======================== */
   const loadAssets = async () => {
     try {
       if (!walletAddress) return;
@@ -87,9 +74,6 @@ export default function TapxWallet() {
     }
   };
 
-  /** ========================
-   *  LOAD WITHDRAWALS
-   * ======================== */
   const loadWithdrawals = async () => {
     if (!walletAddress) return;
     try {

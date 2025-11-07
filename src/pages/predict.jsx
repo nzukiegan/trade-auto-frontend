@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useApp } from "../contexts/AppContext.jsx";
-import { TonConnect } from "@tonconnect/sdk";
+import { TonConnectUI } from "@tonconnect/ui";
 import apiService from "../services/api.js";
 import bear from "../assets/bluebear holding btc.png";
 import avatars from "../assets/profile icons.png";
@@ -31,14 +31,12 @@ const Predict = () => {
   const [tempBetAmount, setTempBetAmount] = useState(bettingAmount); // temporary input in modal
 
 
-  const connector = new TonConnect({
+  const connector = new TonConnectUI({
     manifestUrl: TON_MANIFEST_URL,
   });
 
   const connectWallet = async () => {
     await connector.connectWallet();
-    const walletInfo = connector.wallet;
-    console.log("Connected wallet:", walletInfo);
   };
 
   const openBetModal = (prediction) => {
@@ -47,23 +45,26 @@ const Predict = () => {
   };
 
   useEffect(() => {
+    if (!Array.isArray(predictions)) return;
+
     const { totalVolume, activeVolume } = predictions.reduce(
       (acc, item) => {
-        const vol = item.totalVolume || 0;
+        const poolYes = item.totalPool?.yes || 0;
+        const poolNo = item.totalPool?.no || 0;
+        const vol = poolYes + poolNo;
 
         acc.totalVolume += vol;
-        if (item.status === "active") {
-          acc.activeVolume += vol;
-        }
+        if (item.status === "active") acc.activeVolume += vol;
 
         return acc;
       },
       { totalVolume: 0, activeVolume: 0 }
     );
-
+    console.log("Total volume ", totalVolume)
     setTotalVolume(totalVolume);
     setActiveVolume(activeVolume);
   }, [predictions]);
+
 
   const getActiveMarketsChange = async () => {
     const m = await apiService.getActiveMarketsChange24hr();
@@ -103,10 +104,10 @@ const Predict = () => {
 
   const handleCreatePrediction = async (e) => {
     e.preventDefault();
-    if (!connector.wallet) {
-      addNotification("Please connect your TON wallet first.", "error");
-      return;
-    }
+      if (!connector.wallet) {
+        connectWallet();
+        return;
+      }
 
     setLoading(true);
     try {
@@ -132,8 +133,6 @@ const Predict = () => {
       };
 
       await apiService.createPrediction(predictionPayload);
-
-      addNotification("Prediction created successfully!", "success");
 
       setNewPrediction({
         question: "",
@@ -187,22 +186,25 @@ const Predict = () => {
   };
 
   const calculateOdds = (prediction) => {
-    const totalPool = prediction.totalPool.yes + prediction.totalPool.no;
-    if (totalPool === 0) return { yes: 1.0, no: 1.0 };
+    const yesPool = prediction.totalPool?.yes || 0;
+    const noPool = prediction.totalPool?.no || 0;
+    const totalPool = yesPool + noPool;
 
-    const platformFee = totalPool * prediction.platformFee;
-    const creatorFee = totalPool * prediction.creatorFee;
-    const winningPool = totalPool - platformFee - creatorFee;
+    // Default fees to 0 if not defined
+    const platformFee = prediction.platformFee || 0;
+    const creatorFee = prediction.creatorFee || 0;
+
+    if (totalPool === 0) {
+      return { yes: 1.0, no: 1.0 };
+    }
+
+    // Apply fee deductions
+    const feeAmount = totalPool * (platformFee + creatorFee);
+    const winningPool = totalPool - feeAmount;
 
     return {
-      yes:
-        prediction.totalPool.yes > 0
-          ? (winningPool / prediction.totalPool.yes).toFixed(2)
-          : "N/A",
-      no:
-        prediction.totalPool.no > 0
-          ? (winningPool / prediction.totalPool.no).toFixed(2)
-          : "N/A",
+      yes: yesPool > 0 ? +(winningPool / yesPool).toFixed(2) : "N/A",
+      no: noPool > 0 ? +(winningPool / noPool).toFixed(2) : "N/A",
     };
   };
 
@@ -217,6 +219,8 @@ const Predict = () => {
     if (activeTab === "trending") return p.isTrending;
     return true;
   });
+
+  console.log("Filtered prediction ", filteredPredictions)
 
   return (
     <div className="bg-gray-100 flex justify-center min-h-screen">
@@ -484,8 +488,7 @@ const Predict = () => {
                         Volume: $
                         {(
                           (prediction.totalPool.yes +
-                            prediction.totalPool.no) /
-                          100
+                            prediction.totalPool.no)
                         ).toLocaleString()}
                       </span>
                     </div>

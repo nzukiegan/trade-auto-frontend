@@ -6,35 +6,58 @@ import Navigation from "../components/Navigation.jsx";
 import greybear from "../assets/grey bear.png";
 import goldenbear from "../assets/goldenbear.png";
 import brownbear from "../assets/brown bear holding btc.png";
-import {ADSONAR_APP_ID, ADSONAR_URL} from "../config/env.js"
+import { ADSONAR_APP_ID, ADSONAR_URL } from "../config/env.js";
 
 const Earn = () => {
-  const { user, miningData, initializeApp} = useApp();
+  const { user, miningData, initializeApp } = useApp();
   const { watchAd, loading } = useMining();
   const [availableTasks, setAvailableTasks] = useState([]);
-  const adTasks = availableTasks.filter(task => task.type === "ad");
-  const completedAds = adTasks.filter(task => task.completed).length;
-  const totalAds = adTasks.length;
-  const nextAdTask = adTasks.find(task => !task.completed);
   const [todayEarnings, setTodayEarnings] = useState([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [monthReferrals, setMonthReferrals] = useState(0);
   const [progress, setProgress] = useState(75);
+  const [adTasks, setAdTasks] = useState([]);
+  const [completedAds, setCompletedAds] = useState(0);
+  const [totalAds, setTotalAds] = useState(0);
+  const [nextAdTask, setNextAdTask] = useState(null);
 
   useEffect(() => {
-    //loadAvailableTasks();
-    //loadTodayEarnings();
-    //loadMonthReferrals();
+    loadAvailableTasks();
+    loadTodayEarnings();
+    loadMonthReferrals();
   }, []);
 
   useEffect(() => {
     setTotalEarnings((user?.totalPoints ?? 0) / 10000);
   }, [user?.totalPoints]);
 
+  useEffect(() => {
+  if (!availableTasks || availableTasks.length === 0) {
+    setAdTasks([]);
+    setCompletedAds(0);
+    setTotalAds(0);
+    setNextAdTask(null);
+    return;
+  }
+
+  const filtered = availableTasks
+    .filter(task => task.category === "ads")
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+  setAdTasks(filtered);
+  setCompletedAds(filtered.filter(t => t.completed).length);
+  setTotalAds(filtered.length);
+
+  const firstUncompleted = filtered.find(t => !t.completed) || null;
+  console.log("FIrst uncomplete ", firstUncompleted)
+  setNextAdTask(firstUncompleted);
+}, [availableTasks]);
+
+
   const loadAvailableTasks = async () => {
     try {
       const tasks = await apiService.getAvailableTasks();
-      setAvailableTasks(tasks);
+      setAvailableTasks(tasks.tasks);
     } catch (error) {
       console.error("Failed to load ads:", error);
     }
@@ -42,7 +65,6 @@ const Earn = () => {
 
   function useAdSonar() {
     useEffect(() => {
-
       if (!ADSONAR_APP_ID) {
         console.warn("AdSonar APP_ID not set");
         return;
@@ -61,7 +83,7 @@ const Earn = () => {
 
   useAdSonar();
 
-  const loadTodayEarnings = async() => {
+  const loadTodayEarnings = async () => {
     const earnings = await apiService.getTodayEarnings();
     setTodayEarnings(earnings);
   };
@@ -69,20 +91,21 @@ const Earn = () => {
   const loadMonthReferrals = async () => {
     try {
       const response = await apiService.getReferralsOfMonth();
-      setMonthReferrals(response);
+      console.log("Month referrals response ", response)
+      setMonthReferrals(response.monthlyReferrals);
     } catch (error) {
       console.error("Failed to load referrals:", error);
     }
   };
 
   const handleStartTask = async (task) => {
-    if(task.type === 'ad'){
+    if (task.type === 'ad') {
       const canWatchAd = await apiService.canUserWatchAd();
-      if(canWatchAd.canWatch){
-         showRewardedAd(task);
+      if (canWatchAd.canWatch) {
+        showRewardedAd(task);
       }
     }
-  }
+  };
 
   const showRewardedAd = (task) => {
     window.Sonar.show({
@@ -91,9 +114,11 @@ const Earn = () => {
       onReward: async () => {
         try {
           const result = await apiService.handleEndTask(task);
-          
-          setAvailableTasks(prev => prev.filter(t => t._id !== task._id));
-
+          setAvailableTasks(prev =>
+            prev.map(t =>
+              t._id === task._id ? { ...t, completed: true } : t
+            )
+          ); // Mark task as completed instead of removing
           console.log("Task completed:", result);
         } catch (err) {
           console.error("Failed to record task completion:", err);
@@ -143,15 +168,14 @@ const Earn = () => {
             </div>
           </div>
 
-          {/* Referral Bonus */}
           <div className="relative border rounded-xl p-4 shadow-sm overflow-hidden">
             <div className="absolute left-0 top-0 h-full w-1 bg-yellow-400 rounded-l-xl"></div>
             <div className="text-xs font-semibold text-gray-800 mb-1">Referral Bonus</div>
             <div className="text-lg font-bold">
-              {(user?.referralStats?.referralBonusUsdt ?? 0)} USDT
+              {Number(user?.referralStats?.referralBonusUsdt || 0).toFixed(0)} USDT
             </div>
             <div className="text-xs text-center text-white mt-1 bg-yellow-400 rounded-full p-1 pl-2">
-              +{monthReferrals} new
+               +{monthReferrals ?? 0} new
             </div>
           </div>
         </div>
@@ -165,7 +189,8 @@ const Earn = () => {
             type="range"
             min="0"
             max="100"
-            value={(user?.progress ?? 0)}
+            value={user?.progress ?? 0}
+            readOnly
             className="w-full accent-green-500"
           />
           <div className="text-xs text-gray-600 mt-2 mb-1">
@@ -176,111 +201,68 @@ const Earn = () => {
           </div>
         </div>
 
-        {/* Today's Earnings */}
         <div className="border rounded-xl p-4 mb-6">
           <div className="flex items-center gap-3 mb-3">
-            <img
-              src={brownbear}
-              alt="Brown Bear"
-              className="w-40 h-40 object-contain"
-            />
+            <img src={brownbear} alt="Brown Bear" className="w-40 h-40 object-contain" />
             <h3 className="text-base font-semibold text-gray-800">
               Today’s Earnings
             </h3>
           </div>
 
           <div className="space-y-2">
-            {Object.entries(todayEarnings.sources || {}).map(([name, amount], index) => (
-              <div
-                key={index}
-                className="flex justify-between border border-gray-200 rounded-lg p-2"
-              >
-                <span className="text-sm text-gray-700 capitalize">
-                  {name.replace(/_/g, ' ')}
-                </span>
-                <span className="text-sm text-green-500 font-medium">
-                  +{amount} USDT
-                </span>
-              </div>
+            {Object.entries(todayEarnings.sources || {})
+              .filter(([_, amount]) => amount > 0) // ✅ Only show earnings > 0
+              .map(([name, amount], index) => (
+                <div key={index} className="flex justify-between border border-gray-200 rounded-lg p-2">
+                  <span className="text-sm text-gray-700 capitalize">
+                    {name.replace(/_/g, ' ')}
+                  </span>
+                  <span className="text-sm text-green-500 font-medium">
+                    +{amount / 10000} USDT
+                  </span>
+                </div>
             ))}
           </div>
+
         </div>
 
-        {/* Available Tasks */}
         <div className="mb-6">
-          <h3 className="text-base font-semibold text-gray-800 mb-3">
-            Available Tasks
-          </h3>
-          {/* AD TASKS */}
-            {totalAds > 0 && nextAdTask && (
-              <div className="border rounded-xl p-4 mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {nextAdTask.icon && (
-                    <img
-                      src={nextAdTask.icon}
-                      alt={nextAdTask.title}
-                      className="w-10 h-10 object-contain"
-                    />
-                  )}
-                  <div>
-                    <div className="font-semibold text-sm text-gray-900">{nextAdTask.title}</div>
-                    <div className="text-xs text-gray-500">{nextAdTask.description}</div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      Reward: <span className="text-green-600 font-semibold">{nextAdTask.rewardPoints} pts</span> | Energy: <span className="text-yellow-600 font-semibold">{nextAdTask.rewardEnergy}</span>
-                    </div>
+          <h3 className="text-base font-semibold text-gray-800 mb-3">Available Tasks</h3>
+
+          {nextAdTask && (
+            <div className="border rounded-xl p-4 mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {nextAdTask.icon && (
+                  <img src={nextAdTask.icon} alt={nextAdTask.title} className="w-10 h-10 object-contain" />
+                )}
+                <div>
+                  <div className="font-semibold text-sm text-gray-900">{nextAdTask.title}</div>
+                  <div className="text-xs text-gray-500">{nextAdTask.description}</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    Reward: <span className="text-green-600 font-semibold">{nextAdTask.rewardPoints} pts</span> | Energy: <span className="text-yellow-600 font-semibold">{nextAdTask.rewardEnergy}</span>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => handleStartTask(nextAdTask)}
-                  disabled={loading || nextAdTask.completed}
-                  className="bg-yellow-400 text-gray-800 font-semibold text-sm px-4 py-1.5 rounded-lg w-28 text-center disabled:opacity-60"
-                >
-                  {loading ? "Loading..." : `Watch Ad ${completedAds + 1}/${totalAds}`}
-                </button>
               </div>
-            )}
 
-            {/* NON-AD TASKS */}
-            {availableTasks.filter(task => task.type !== "ad").map((task) => (
-              <div key={task._id} className="border rounded-xl p-4 mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {task.icon && <img src={task.icon} alt={task.title} className="w-10 h-10 object-contain" />}
-                  <div>
-                    <div className="font-semibold text-sm text-gray-900">{task.title}</div>
-                    <div className="text-xs text-gray-500">{task.description}</div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      Reward: <span className="text-green-600 font-semibold">{task.rewardPoints} pts</span> | Energy: <span className="text-yellow-600 font-semibold">{task.rewardEnergy}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleStartTask(task)}
-                  disabled={loading || task.completed}
-                  className={`${
-                    task.completed
-                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                      : "bg-yellow-400 text-gray-800 hover:bg-yellow-500"
-                  } font-semibold text-sm px-4 py-1.5 rounded-lg w-28 text-center transition disabled:opacity-60`}
-                >
-                  {task.completed ? "Completed" : loading ? "Loading..." : "Start Task"}
-                </button>
-              </div>
-            ))}
+              <button
+                onClick={() => handleStartTask(nextAdTask)}
+                disabled={loading || nextAdTask.completed}
+                className="bg-yellow-400 text-gray-800 font-semibold text-sm px-4 py-1.5 rounded-lg w-28 text-center disabled:opacity-60"
+              >
+                {loading ? "Loading..." : `Watch Ad 1/${totalAds}`}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Earning Tips */}
         <div className="bg-gray-900 text-white rounded-xl p-5 text-center mb-10">
           <div className="text-2xl mb-1">💡</div>
           <h4 className="text-yellow-400 font-semibold mb-2">Earning Tips</h4>
           <p className="text-xs opacity-90">
-            Complete daily check-ins and refer friends to maximize your USDT
-            earnings. Always watch out for new high-paying tasks!
+            Complete daily check-ins and refer friends to maximize your USDT earnings. Always watch out for new high-paying tasks!
           </p>
         </div>
 
-        {/* Navigation */}
         <Navigation active="Earn" />
       </div>
     </div>

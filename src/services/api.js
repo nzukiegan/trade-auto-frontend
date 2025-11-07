@@ -1,32 +1,47 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/env.js';
+import axiosRetry from 'axios-retry';
 
 class ApiService {
   constructor() {
-    this.client = axios.create({
-      baseURL: API_BASE_URL,
-      timeout: 10000,
-    });
+  this.client = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 10000,
+  });
 
-    this.client.interceptors.request.use((config) => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+  this.client.interceptors.request.use((config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
 
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('authToken');
-          window.location.href = '/';
-        }
-        return Promise.reject(error);
+  axiosRetry(this.client, {
+    retries: 3,
+    retryDelay: (retryCount, error) => {
+      const retryAfter = error.response?.headers['retry-after'];
+      return retryAfter ? retryAfter * 1000 : retryCount * 1000;
+    },
+    retryCondition: (error) => {
+      return (
+        error.response &&
+        (error.response.status === 429 || error.code === 'ECONNABORTED')
+      );
+    },
+  });
+
+  this.client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/';
       }
-    );
-  }
+      return Promise.reject(error);
+    }
+  );
+}
 
   async getTodayEarnings(){
     const response = await this.client.get('/users/today-earnings');
@@ -58,7 +73,8 @@ class ApiService {
   }
 
   async getAvailableTasks(){
-    const response = await this.client.get('/tasks/available-tasks');
+    const response = await this.client.get('/tasks/today-tasks');
+    console.log("Task response ", response);
     return response.data;
   }
 
@@ -107,6 +123,7 @@ class ApiService {
 
   async createPrediction(predictionData) {
     const response = await this.client.post('/predictions/create', predictionData);
+    console.log(response);
     return response.data;
   }
 
@@ -137,7 +154,7 @@ class ApiService {
 
   async getAllPredictions(page = 1, status = "all") {
     const response = await this.client.get('/predictions/all', {
-      params: { page, limit, status }
+      params: { status }
     });
     return response.data;
   }

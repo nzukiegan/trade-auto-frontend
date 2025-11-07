@@ -9,8 +9,10 @@ import blueBear from "../assets/bluebear holding btc.png";
 import goldBear from "../assets/goldenbear.png";
 import greyBear from "../assets/grey bear.png";
 import WebApp from "@twa-dev/sdk";
+import { TonConnectUI } from "@tonconnect/ui";
 import { API_BASE_URL } from '../config/env.js';
 import { Copy } from "lucide-react";
+import { TREASURY_WALLET_ADDRESS } from "../config/env.js"
 
 export default function Home() {
   const [telegramId, setTelegramId] = useState(null);
@@ -34,13 +36,84 @@ export default function Home() {
 
   }, []);
 
+  const tonConnectUI = new TonConnectUI({
+    manifestUrl: "http://localhost/tonconnect-manifest.json"
+  });
+
   useEffect(() => {
     loadMiningLevels();
   }, []);
 
+  async function convertTonToUsd(tonAmount = 1) {
+    try {
+      const url = "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd";
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const tonPriceUsd = data["the-open-network"]?.usd;
+
+      console.log("ton price usd ", tonPriceUsd)
+
+      if (!tonPriceUsd) throw new Error("TON price not found in API response");
+
+      const usdValue = tonPriceUsd * tonAmount;
+      return Number(usdValue.toFixed(2));
+    } catch (err) {
+      console.error("Error converting TON to USD:", err.message);
+      return null;
+    }
+  }
+
+  async function handleSubscribe(planType, usdAmount) {
+    try {
+      setIsSubscribing(true);
+      const tonAmount = convertTonToUsd(usdAmount);
+      const connectedWallet = await tonConnectUI.connectWallet();
+      if (!connectedWallet) {
+        alert("Please connect your TON wallet to continue.");
+        return;
+      }
+
+      const walletAddress = connectedWallet.account.address;
+
+      localStorage.setItem("my_wallet_address", walletAddress);
+
+      const tx = {
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        messages: [
+          {
+            address: TREASURY_WALLET_ADDRESS,
+            amount: (parseFloat(tonAmount) * 1e9).toString(), // nanoTONs
+          },
+        ],
+      };
+
+      await tonConnectUI.sendTransaction(tx);
+      alert(`✅ Payment of ${tonAmount} TON sent successfully!`);
+
+      await apiService.verifySubscription({
+        plan: planType,
+        amount: tonAmount,
+        walletAddress: connectedWallet.account.address,
+      });
+
+      setShowSubscriptionModal(false);
+    } catch (err) {
+      console.error("Subscription error:", err);
+      alert("Subscription failed. Please try again.");
+    } finally {
+      setIsSubscribing(false);
+    }
+  }
+
   const calculateNextRank = () => {
     const currentLevel = miningData.level;
-    if (currentLevel < 18) {
+    if (currentLevel < 18 && Array.isArray(miningLevels) && miningLevels.length > 0) {
+      console.log(miningLevels)
       const nextLevel = miningLevels.find((lvl) => lvl.level === currentLevel + 1);
       setNextRank(nextLevel);
     } else {
@@ -83,6 +156,7 @@ export default function Home() {
 
   const loadMiningLevels = async () => {
     const m = await apiService.loadMiningLevels();
+    console.log(m)
     setMiningLevels(m);
   };
 
@@ -161,46 +235,45 @@ export default function Home() {
               {getCollectorRank(miningData.level)} Collector
             </button>
           </div>
-<div className="mt-4 border rounded-lg p-3 shadow-sm">
-  <div className="flex flex-col gap-2">
-    {/* Progress bar section */}
-    <div className="flex items-center gap-2">
-      <div className="text-xs text-gray-500">Progress:</div>
+            <div className="mt-4 border rounded-lg p-3 shadow-sm">
+              <div className="flex flex-col gap-2">
+                {/* Progress bar section */}
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-gray-500">Progress:</div>
 
-      {(() => {
-        const totalBars = 18; // total possible ranks
-        const filledBars = Math.min(miningData.level, totalBars);
-        const emptyBars = totalBars - filledBars;
+                  {(() => {
+                    const totalBars = 18; // total possible ranks
+                    const filledBars = Math.min(miningData.level, totalBars);
+                    const emptyBars = totalBars - filledBars;
 
-        return (
-          <div className="flex items-center gap-1">
-            {[...Array(filledBars)].map((_, i) => (
-              <div
-                key={`filled-${i}`}
-                className="h-6 w-1.5 bg-yellow-400 rounded-full"
-              ></div>
-            ))}
-            {[...Array(emptyBars)].map((_, i) => (
-              <div
-                key={`empty-${i}`}
-                className="h-6 w-1.5 bg-gray-300 rounded-full"
-              ></div>
-            ))}
-          </div>
-        );
-      })()}
-    </div>
+                    return (
+                      <div className="flex items-center gap-1">
+                        {[...Array(filledBars)].map((_, i) => (
+                          <div
+                            key={`filled-${i}`}
+                            className="h-6 w-1.5 bg-yellow-400 rounded-full"
+                          ></div>
+                        ))}
+                        {[...Array(emptyBars)].map((_, i) => (
+                          <div
+                            key={`empty-${i}`}
+                            className="h-6 w-1.5 bg-gray-300 rounded-full"
+                          ></div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
 
-    {/* Rank label */}
-    <div className="text-xs text-gray-500 ml-12">
-      • Current Rank{" "}
-      <span className="font-semibold text-gray-700">
-        {miningData.level} / 18
-      </span>
-    </div>
-  </div>
-</div>
-
+                {/* Rank label */}
+                <div className="text-xs text-gray-500 ml-12">
+                  • Current Rank{" "}
+                  <span className="font-semibold text-gray-700">
+                    {miningData.level} / 18
+                  </span>
+                </div>
+              </div>
+            </div>
         </div>
 
         {/* Next Rank */}
@@ -285,17 +358,6 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 shadow-lg text-center">
             <h2 className="font-bold text-lg mb-2">Choose Your Subscription</h2>
-            <p className="text-sm text-gray-600 mb-3 flex items-center">
-              Deposit address:&nbsp;
-              <span className="font-mono text-gray-800">{user?.walletAddress}</span>
-              <Copy
-                className="w-4 h-4 ml-2 cursor-pointer text-gray-500 hover:text-gray-700"
-                onClick={() => {
-                  navigator.clipboard.writeText(user?.walletAddress);
-                  alert("Address copied!");
-                }}
-              />
-            </p>
 
             <div className="space-y-3">
               <button
