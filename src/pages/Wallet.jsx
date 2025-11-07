@@ -7,7 +7,7 @@ import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
 import { TonConnectUI } from "@tonconnect/ui";
-import { TON_RPC_URL } from "../config/env.js";
+import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
 
 export default function TapxWallet() {
   const [assets, setAssets] = useState([]);
