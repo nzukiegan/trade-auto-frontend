@@ -19,6 +19,7 @@ export default function Home() {
   const { user, miningData } = useApp();
   const { claimDailyPoints, upgradeLevel, loading } = useMining();
   const [miningLevels, setMiningLevels] = useState([]);
+  const [username, setUsername] = useState('');
   const [nextRank, setNextRank] = useState(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [balance, setBalance] = useState(0);
