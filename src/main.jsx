@@ -1,6 +1,6 @@
 // src/main.jsx
 import { Buffer } from "buffer";
-window.Buffer = Buffer;
+window.Buffer = window.Buffer || Buffer;
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
