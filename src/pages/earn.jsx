@@ -20,7 +20,7 @@ const Earn = () => {
   const [completedAds, setCompletedAds] = useState(0);
   const [totalAds, setTotalAds] = useState(0);
   const [nextAdTask, setNextAdTask] = useState(null);
-
+  console.log(user)
   useEffect(() => {
     loadAvailableTasks();
     loadTodayEarnings();
