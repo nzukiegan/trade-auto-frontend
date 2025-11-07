@@ -1,7 +1,3 @@
-// Source - https://stackoverflow.com/a
-// Posted by Tbaut, modified by community. See post 'Timeline' for change history
-// Retrieved 2025-11-07, License - CC BY-SA 4.0
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -17,8 +13,6 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            // This Rollup aliases are extracted from @esbuild-plugins/node-modules-polyfill, 
-            // see https://github.com/remorses/esbuild-plugins/blob/master/node-modules-polyfill/src/polyfills.ts
             util: 'rollup-plugin-node-polyfills/polyfills/util',
             sys: 'util',
             events: 'rollup-plugin-node-polyfills/polyfills/events',
@@ -73,9 +67,6 @@ export default defineConfig({
     build: {
         rollupOptions: {
             plugins: [
-                // Enable rollup polyfills plugin
-                // used during production bundling
-                // @ts-ignore
                 rollupNodePolyFill(),
             ]
         }
