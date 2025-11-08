@@ -1,22 +1,17 @@
 import React from 'react';
-import homeIcon from "../assets/home.png";
-import earnIcon from "../assets/earn.png";
-import predictIcon from "../assets/predict.png";
-import rankingIcon from "../assets/ranking.png";
-import { Wallet } from "lucide-react"
+import { Home, RotateCw, Activity, Trophy, Wallet } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Navigation.css';
-//
 
 export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const navItems = [
-    { name: 'Home', icon: <homeIcon size={22} />, path: '/' },
-    { name: 'Earn', icon: <earnIcon size={22} />, path: '/earn' },
-    { name: 'Predict', icon: <predictIcon size={22} />, path: '/predict' },
-    { name: 'Ranking', icon: <rankingIcon size={22} />, path: '/ranking' },
+    { name: 'Home', icon: <Home size={22} />, path: '/' },
+    { name: 'Earn', icon: <RotateCw size={22} />, path: '/earn' },
+    { name: 'Predict', icon: <Activity size={22} />, path: '/predict' },
+    { name: 'Ranking', icon: <Trophy size={22} />, path: '/ranking' },
     { name: 'Wallet', icon: <Wallet size={22} />, path: '/wallet' },
   ];
 

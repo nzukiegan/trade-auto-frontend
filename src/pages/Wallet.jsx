@@ -33,30 +33,42 @@ export default function TapxWallet() {
     manifestUrl: TON_MANIFEST_URL,
   });
 
-  const handleConnectWallet = async () => {
-    try {
-      const wallet = await connector.connectWallet();
+  useEffect(() => {
+  const initTonConnect = async () => {
+    const connector = new TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
+    setTonConnect(connector);
 
-      if (wallet && wallet.account) {
-        setWalletAddress(wallet.account.address);
-        setWalletConnected(true);
-        await loadAssets();
-      } else {
-        console.error("No wallet account found");
-      }
-    } catch (error) {
-      console.error("Wallet connection failed:", error);
-    }
-  };
+    const wallet = connector.account;
 
-
-  const loadStoredWallet = async () => {
-    const savedAddress = localStorage.getItem("my_wallet_address");
-    if (savedAddress) {
-      setWalletAddress(savedAddress);
+    if (wallet) {
+      setWalletAddress(wallet.address);
       setWalletConnected(true);
+      await loadAssets();
+      await loadWithdrawals();
+      await loadAirdropInfo();
+    } else {
+      setWalletConnected(false);
     }
   };
+
+  initTonConnect();
+}, []);
+
+const handleConnectWallet = async () => {
+  try {
+    await tonConnect.connectWallet();
+    const wallet = tonConnect.account;
+    if (wallet) {
+      setWalletAddress(wallet.address);
+      setWalletConnected(true);
+      await loadAssets();
+      await loadWithdrawals();
+      await loadAirdropInfo();
+    }
+  } catch (error) {
+    console.error("Wallet connection failed:", error);
+  }
+};
 
   const loadAssets = async () => {
     try {
