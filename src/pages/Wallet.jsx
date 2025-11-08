@@ -34,7 +34,19 @@ export default function TapxWallet() {
   });
 
   const handleConnectWallet = async () => {
-    await connector.connectWallet();
+    try {
+      const wallet = await connector.connectWallet();
+
+      if (wallet && wallet.account) {
+        setWalletAddress(wallet.account.address);
+        setWalletConnected(true);
+        await loadAssets();
+      } else {
+        console.error("No wallet account found");
+      }
+    } catch (error) {
+      console.error("Wallet connection failed:", error);
+    }
   };
 
 
@@ -197,6 +209,7 @@ export default function TapxWallet() {
             )}
           </div>
         </div>
+
 
         {/* ASSETS */}
         <h2 className="text-lg font-semibold mt-6 mb-3">My Assets</h2>
