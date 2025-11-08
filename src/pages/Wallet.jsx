@@ -70,6 +70,7 @@ export default function TapxWallet() {
       setWalletConnected(false);
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
+      console.log("Connected wallet ", wallet);
       if (wallet) {
         setWalletAddress(wallet.address);
         setWalletConnected(true);
