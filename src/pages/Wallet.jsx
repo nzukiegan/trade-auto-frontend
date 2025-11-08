@@ -69,6 +69,7 @@ export default function TapxWallet() {
       const tonBalance = Number(tonBalanceNano) / 1e9;
 
       const response = await fetch(`https://tonapi.io/v2/accounts/${walletAddress}/jettons`);
+      console.log("Assets response ", response);
       const data = await response.json();
       const jettons =
         data.balances?.map((j) => ({
