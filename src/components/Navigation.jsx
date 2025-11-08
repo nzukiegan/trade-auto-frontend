@@ -3,7 +3,7 @@ import homeIcon from "../assets/home.png";
 import earnIcon from "../assets/earn.png";
 import predictIcon from "../assets/predict.png";
 import rankingIcon from "..assets/ranking.png";
-import { WalletIcon } from "lucid-react"
+import { Wallet } from "lucide-react"
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Navigation.css';
 
@@ -16,7 +16,7 @@ export default function Navigation() {
     { name: 'Earn', icon: <earnIcon size={22} />, path: '/earn' },
     { name: 'Predict', icon: <predictIcon size={22} />, path: '/predict' },
     { name: 'Ranking', icon: <rankingIcon size={22} />, path: '/ranking' },
-    { name: 'Wallet', icon: <walletIcon size={22} />, path: '/wallet' },
+    { name: 'Wallet', icon: <Wallet size={22} />, path: '/wallet' },
   ];
 
   return (
