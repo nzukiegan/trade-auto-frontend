@@ -176,10 +176,6 @@ const handleConnectWallet = async () => {
       alert("❌ Withdraw failed.");
     }
   };
-  
-  useEffect(() => {
-    loadStoredWallet();
-  }, []);
 
   useEffect(() => {
     if (walletConnected) {
