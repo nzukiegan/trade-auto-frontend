@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
 import { TonClient, Address } from "@ton/ton";
 import apiService from "../services/api.js";
-
+import { useApp } from "../contexts/AppContext.jsx";
 import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
@@ -10,6 +10,7 @@ import { TonConnectUI } from "@tonconnect/ui";
 import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
 
 export default function TapxWallet() {
+  const { user } = useApp();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,51 +25,60 @@ export default function TapxWallet() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [airdropInfo, setAirdropInfo] = useState(null);
   const [claiming, setClaiming] = useState(false);
-
   const iconMap = { TON: tonIcon, USDt: usdIcon };
   const client = new TonClient({ endpoint: TON_RPC_URL });
 
-
-  const connector = new TonConnectUI({
-    manifestUrl: TON_MANIFEST_URL,
-  });
-
   useEffect(() => {
-  const initTonConnect = async () => {
-    const connector = new TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
-    setTonConnect(connector);
+    const initTonConnect = async () => {
+      const connector = new TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
+      setTonConnect(connector);
 
-    const wallet = connector.account;
+      try {
+        if (user?.walletAddress) {
+          setWalletAddress(user.walletAddress);
+          setWalletConnected(true);
+          await loadAssets();
+          await loadWithdrawals();
+          await loadAirdropInfo();
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch user wallet from backend:", err);
+      }
 
-    if (wallet) {
-      setWalletAddress(wallet.address);
-      setWalletConnected(true);
-      await loadAssets();
-      await loadWithdrawals();
-      await loadAirdropInfo();
-    } else {
-      setWalletConnected(false);
+      const wallet = connector.account;
+      console.log("Wallet ", wallet);
+      if (wallet) {
+        setWalletAddress(wallet.address);
+        setWalletConnected(true);
+        await apiService.connectWallet(wallet.address);
+        await loadAssets();
+        await loadWithdrawals();
+        await loadAirdropInfo();
+      } else {
+        setWalletConnected(false);
+      }
+    };
+
+    initTonConnect();
+  }, []);
+
+  const handleConnectWallet = async () => {
+    try {
+      await tonConnect.connectWallet();
+      const wallet = tonConnect.account;
+      if (wallet) {
+        setWalletAddress(wallet.address);
+        setWalletConnected(true);
+        await apiService.connectWallet(wallet.address);
+        await loadAssets();
+        await loadWithdrawals();
+        await loadAirdropInfo();
+      }
+    } catch (error) {
+      console.error("Wallet connection failed:", error);
     }
   };
-
-  initTonConnect();
-}, []);
-
-const handleConnectWallet = async () => {
-  try {
-    await tonConnect.connectWallet();
-    const wallet = tonConnect.account;
-    if (wallet) {
-      setWalletAddress(wallet.address);
-      setWalletConnected(true);
-      await loadAssets();
-      await loadWithdrawals();
-      await loadAirdropInfo();
-    }
-  } catch (error) {
-    console.error("Wallet connection failed:", error);
-  }
-};
 
   const loadAssets = async () => {
     try {
