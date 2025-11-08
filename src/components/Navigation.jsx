@@ -2,7 +2,7 @@ import React from 'react';
 import homeIcon from "../assets/home.png";
 import earnIcon from "../assets/earn.png";
 import predictIcon from "../assets/predict.png";
-import rankingIcon from "..assets/ranking.png";
+import rankingIcon from "../assets/ranking.png";
 import { Wallet } from "lucide-react"
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Navigation.css';
