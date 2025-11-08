@@ -6,6 +6,7 @@ import rankingIcon from "../assets/ranking.png";
 import { Wallet } from "lucide-react"
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Navigation.css';
+//
 
 export default function Navigation() {
   const navigate = useNavigate();
