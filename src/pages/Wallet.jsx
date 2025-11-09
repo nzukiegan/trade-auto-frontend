@@ -298,9 +298,6 @@ const handleSendWithdraw = async () => {
       return;
     }
 
-    const recipientAddress = parseAddress(withdrawTo);
-    const myWalletAddress = parseAddress(walletAddress);
-
     if (!recipientAddress || !myWalletAddress) {
       alert("Invalid wallet address format!");
       return;
