@@ -76,6 +76,7 @@ export default function TapxWallet() {
         );
         const data = await res.json();
         const tonPriceUsd = data["the-open-network"]?.usd;
+        console.log(data)
         setTonPriceUSD(tonPriceUSD);
       } catch (err) {
         console.error("Failed to fetch TON price:", err);
@@ -440,8 +441,7 @@ const handleSendWithdraw = async () => {
               placeholder="Enter amount"
               value={withdrawAmount}
               onChange={(e) => {
-                setWithdrawAmount(e.target.value);
-                setWithdrawUSD(Number(e.target.value) * (tonPriceUSD || 0));
+                setWithdrawUSD(withdraw nAmount * (tonPriceUSD || 0));
               }}
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
