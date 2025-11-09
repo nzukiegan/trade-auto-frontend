@@ -99,6 +99,7 @@ export default function TapxWallet() {
 
   const handleConnectWallet = async () => {
     try {
+      await tonConnect.disconnectWallet();
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
       console.log("Connected wallet ", wallet);
@@ -320,9 +321,12 @@ const handleSendWithdraw = async () => {
 
   useEffect(() => {
     if (walletConnected) {
+      console.log("Wallet connected fetching assets and withdrawals")
       loadAssets();
       loadWithdrawals();
       loadAirdropInfo();
+    }else {
+      console.log("Wallet  not connected")
     }
   }, [walletConnected, walletAddress]);
 
