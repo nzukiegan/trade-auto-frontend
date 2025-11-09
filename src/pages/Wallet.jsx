@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { TonConnect } from "@tonconnect/sdk";
 import { TonClient, Address } from "@ton/ton";
 import apiService from "../services/api.js";
 import { useApp } from "../contexts/AppContext.jsx";
@@ -7,7 +6,8 @@ import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
 import { TonConnectUI } from "@tonconnect/ui";
-import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
+import { TON_RPC_URL, TON_MANIFEST_URL } from "../config/env.js";
+import QRCode from "qrcode.react";
 
 export default function TapxWallet() {
   const { user } = useApp();
@@ -17,8 +17,8 @@ export default function TapxWallet() {
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [tonConnect, setTonConnect] = useState(null);
-  const [depositInfo, setDepositInfo] = useState(null);
   const [withdrawModal, setWithdrawModal] = useState(null);
+  const [depositModal, setDepositModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawTo, setWithdrawTo] = useState("");
   const [activeTab, setActiveTab] = useState("Withdrawals");
@@ -28,6 +28,9 @@ export default function TapxWallet() {
   const iconMap = { TON: tonIcon, USDt: usdIcon };
   const client = new TonClient({ endpoint: TON_RPC_URL });
 
+  /** ========================
+   * TONCONNECT INIT
+   * ======================== */
   useEffect(() => {
     const initTonConnect = async () => {
       const connector = new TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
@@ -47,7 +50,6 @@ export default function TapxWallet() {
       }
 
       const wallet = connector.account;
-      console.log("Wallet ", wallet);
       if (wallet) {
         setWalletAddress(wallet.address);
         setWalletConnected(true);
@@ -55,15 +57,15 @@ export default function TapxWallet() {
         await loadAssets();
         await loadWithdrawals();
         await loadAirdropInfo();
-      } else {
-        setWalletConnected(false);
       }
     };
 
     initTonConnect();
   }, []);
 
-
+  /** ========================
+   * CHECK TONCONNECT STATUS PERIODICALLY
+   * ======================== */
   useEffect(() => {
     if (!tonConnect) return;
 
@@ -86,10 +88,12 @@ export default function TapxWallet() {
     };
 
     const interval = setInterval(checkConnection, 5000);
-
     return () => clearInterval(interval);
   }, [tonConnect, walletConnected]);
 
+  /** ========================
+   * CONNECT WALLET
+   * ======================== */
   const handleConnectWallet = async () => {
     try {
       await tonConnect.disconnect();
@@ -97,7 +101,6 @@ export default function TapxWallet() {
       setWalletConnected(false);
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
-      console.log("Connected wallet ", wallet);
       if (wallet) {
         setWalletAddress(wallet.address);
         setWalletConnected(true);
@@ -111,97 +114,47 @@ export default function TapxWallet() {
     }
   };
 
- const loadAssets = async () => {
-  try {
-    if (!walletAddress) return;
-    setLoading(true);
-    setError(null);
+  /** ========================
+   * LOAD ASSETS
+   * ======================== */
+  const loadAssets = async () => {
+    try {
+      if (!walletAddress) return;
+      setLoading(true);
+      setError(null);
 
-    // TON balance
-    const address = Address.parse(walletAddress);
-    const tonBalanceNano = await client.getBalance(address);
-    const tonAmount = Number(tonBalanceNano) / 1e9;
+      const address = Address.parse(walletAddress);
+      const tonBalanceNano = await client.getBalance(address);
+      const tonAmount = Number(tonBalanceNano) / 1e9;
 
-    // Get jettons from TonAPI
-    const resp = await fetch(`https://tonapi.io/v2/accounts/${walletAddress}/jettons`);
-    const data = await resp.json();
+      const resp = await fetch(`https://tonapi.io/v2/accounts/${walletAddress}/jettons`);
+      const data = await resp.json();
 
-    // Build jetton objects with contract and decimals
-    const jettons =
-      (data.balances || []).map((j) => {
-        const decimals = j.jetton?.decimals ?? 9;
-        const amount = (Number(j.balance) / 10 ** decimals);
-        return {
-          symbol: j.jetton?.symbol || "Unknown",
-          contract: j.jetton?.address || null,
-          decimals,
-          amount,
-        };
-      }) || [];
+      const jettons =
+        (data.balances || []).map((j) => {
+          const decimals = j.jetton?.decimals ?? 9;
+          const amount = Number(j.balance) / 10 ** decimals;
+          return {
+            symbol: j.jetton?.symbol || "Unknown",
+            contract: j.jetton?.address || null,
+            decimals,
+            amount,
+          };
+        }) || [];
 
-    // Prepare price lookups using CoinGecko (public API)
-    // Map token symbols to coin ids — extend this for custom jettons
-    const tokenSymbolToCoingeckoId = {
-      TON: "toncoin",
-      USDT: "tether",
-      USDC: "usd-coin",
-      // add known mappings: "JP18": "your-coingecko-id-if-exists"
-    };
-
-    // Collect symbols for price query
-    const symbols = Array.from(new Set([ "TON", ...jettons.map(j => j.symbol) ]));
-    const ids = symbols
-      .map(s => tokenSymbolToCoingeckoId[s] || null)
-      .filter(Boolean)
-      .join(",");
-
-    // Fetch prices from CoinGecko if we have any known ids
-    let prices = {};
-    if (ids.length > 0) {
-      try {
-        const priceResp = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
-        );
-        const priceJson = await priceResp.json();
-        // invert mapping: symbol -> usd price
-        for (const [sym, cgId] of Object.entries(tokenSymbolToCoingeckoId)) {
-          if (priceJson[cgId]) prices[sym] = priceJson[cgId].usd;
-        }
-      } catch (err) {
-        console.warn("Failed to fetch prices from CoinGecko:", err);
-      }
+      const allAssets = [{ symbol: "TON", amount: tonAmount }, ...jettons];
+      setAssets(allAssets);
+    } catch (err) {
+      console.error("Failed to load assets:", err);
+      setError("Failed to load assets. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Build final assets array with optional USD values
-    const tonAsset = {
-      symbol: "TON",
-      amount: tonAmount,
-      contract: null,
-      decimals: 9,
-      priceUSD: prices["TON"] ?? null,
-      valueUSD: prices["TON"] ? tonAmount * prices["TON"] : null,
-    };
-
-    const jettonAssets = jettons.map((j) => ({
-      symbol: j.symbol,
-      amount: Number(j.amount.toFixed(6)), // keep precision reasonable
-      contract: j.contract,
-      decimals: j.decimals,
-      priceUSD: prices[j.symbol] ?? null,
-      valueUSD: prices[j.symbol] ? Number((j.amount * prices[j.symbol]).toFixed(6)) : null,
-    }));
-
-    const allAssets = [tonAsset, ...jettonAssets];
-    setAssets(allAssets);
-  } catch (err) {
-    console.error("Failed to load assets:", err);
-    setError("Failed to load assets. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  /** ========================
+   * LOAD WITHDRAWALS
+   * ======================== */
   const loadWithdrawals = async () => {
     if (!walletAddress) return;
     try {
@@ -212,10 +165,13 @@ export default function TapxWallet() {
     }
   };
 
+  /** ========================
+   * LOAD AIRDROP INFO
+   * ======================== */
   const loadAirdropInfo = async () => {
     if (!walletAddress) return;
     try {
-      const data = await apiService.loadAirdropInfo()
+      const data = await apiService.loadAirdropInfo();
       setAirdropInfo(data);
     } catch (err) {
       console.error("Failed to load airdrop info:", err);
@@ -223,15 +179,15 @@ export default function TapxWallet() {
   };
 
   /** ========================
-   *  CLAIM AIRDROP
+   * HANDLE CLAIM AIRDROP
    * ======================== */
   const handleClaimAirdrop = async () => {
-    try {
-      if (!walletConnected) return alert("Connect your wallet first.");
-      if (!airdropInfo?.claimable || airdropInfo.claimable <= 0) {
-        return alert("No claimable tokens available.");
-      }
+    if (!walletConnected) return alert("Connect your wallet first.");
+    if (!airdropInfo?.claimable || airdropInfo.claimable <= 0) {
+      return alert("No claimable tokens available.");
+    }
 
+    try {
       setClaiming(true);
       const res = await apiService.post(`/airdrop/claim`, { walletAddress });
       alert(`🎉 Claimed ${res.data.claimed} JP18 tokens successfully!`);
@@ -244,28 +200,24 @@ export default function TapxWallet() {
     }
   };
 
+  /** ========================
+   * WITHDRAW HANDLERS
+   * ======================== */
   const handleWithdraw = (asset) => {
-    if (!walletConnected) {
-      alert("Connect your wallet first.");
-      return;
-    }
+    if (!walletConnected) return alert("Connect your wallet first.");
     setWithdrawModal(asset);
   };
 
   const handleSendWithdraw = async () => {
-    try {
-      if (!withdrawAmount || !withdrawTo) {
-        alert("Please enter amount and wallet address.");
-        return;
-      }
+    if (!withdrawAmount || !withdrawTo) return alert("Enter amount & address.");
 
+    try {
       const res = await apiService.post(`/withdraw`, {
         walletAddress,
         asset: withdrawModal.symbol,
         amount: parseFloat(withdrawAmount),
         to: withdrawTo,
       });
-
       alert(`✅ Withdraw request sent: ${res.data.status}`);
       setWithdrawModal(null);
       setWithdrawAmount("");
@@ -277,13 +229,21 @@ export default function TapxWallet() {
     }
   };
 
-  const handleDeposit = async () => {
+  /** ========================
+   * DEPOSIT HANDLER
+   * ======================== */
+  const handleDeposit = (asset) => {
+    if (!walletConnected) return alert("Connect your wallet first.");
+    setDepositModal(true); // open deposit modal
+  };
 
-  }
-
-  const handleConvert = async () => {
-
-  }
+  /** ========================
+   * COPY WALLET TO CLIPBOARD
+   * ======================== */
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(walletAddress);
+    alert("Wallet address copied!");
+  };
 
   useEffect(() => {
     if (walletConnected) {
@@ -327,7 +287,6 @@ export default function TapxWallet() {
           </div>
         </div>
 
-
         {/* ASSETS */}
         <h2 className="text-lg font-semibold mt-6 mb-3">My Assets</h2>
         {loading ? (
@@ -354,26 +313,17 @@ export default function TapxWallet() {
                   </span>
                 </div>
                 <div className="flex space-x-3 mt-3">
-
                   <button
                     onClick={() => handleDeposit(asset)}
                     className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
                   >
                     Deposit
                   </button>
-
                   <button
                     onClick={() => handleWithdraw(asset)}
                     className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
                   >
                     Withdraw
-                  </button>
-
-                  <button
-                    onClick={() => handleConvert(asset)}
-                    className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
-                  >
-                    Convert
                   </button>
                 </div>
               </div>
@@ -381,126 +331,28 @@ export default function TapxWallet() {
           </div>
         )}
 
-        {/* WITHDRAW MODAL */}
-        {withdrawModal && (
+        {/* DEPOSIT MODAL */}
+        {depositModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 w-[350px] text-center shadow-xl">
-              <h2 className="text-lg font-semibold mb-2">
-                Withdraw {withdrawModal.symbol}
-              </h2>
-              <input
-                type="number"
-                step="any"
-                placeholder="Enter amount"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm"
-              />
-              <input
-                type="text"
-                placeholder="Destination wallet address"
-                value={withdrawTo}
-                onChange={(e) => setWithdrawTo(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm"
-              />
-              <div className="flex justify-between gap-3">
-                <button
-                  onClick={() => setWithdrawModal(null)}
-                  className="flex-1 bg-gray-200 rounded-lg py-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSendWithdraw}
-                  className="flex-1 bg-blue-600 text-white rounded-lg py-2"
-                >
-                  Send
-                </button>
-              </div>
+              <h2 className="text-lg font-semibold mb-4">Deposit TON</h2>
+              <QRCode value={walletAddress} size={180} />
+              <p className="mt-3 font-mono break-all">{walletAddress}</p>
+              <button
+                onClick={copyToClipboard}
+                className="mt-3 w-full bg-blue-600 text-white py-2 rounded-lg font-semibold"
+              >
+                Copy Address
+              </button>
+              <button
+                onClick={() => setDepositModal(false)}
+                className="mt-2 w-full bg-gray-200 text-black py-2 rounded-lg font-semibold"
+              >
+                Close
+              </button>
             </div>
           </div>
         )}
-
-        {/* TABS SECTION */}
-        <div className="mt-8">
-          <div className="flex border-b border-gray-300 mb-3">
-            {["Withdrawals", "Tokenomics", "Airdrop"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 py-2 font-semibold border rounded-t-lg ${
-                  activeTab === tab
-                    ? "bg-yellow-400 text-black border-yellow-400"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* TAB CONTENT */}
-          <div className="bg-[#001F0C] text-white rounded-b-xl p-4 shadow-inner">
-            {activeTab === "Withdrawals" && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Withdrawal History</h3>
-                {withdrawals.length === 0 ? (
-                  <p className="text-sm text-gray-200">No withdrawals yet.</p>
-                ) : (
-                  <ul className="text-sm text-gray-200 space-y-2">
-                    {withdrawals.map((w, i) => (
-                      <li
-                        key={i}
-                        className="border-b border-gray-700 pb-2 flex justify-between"
-                      >
-                        <span>
-                          {w.amount} {w.asset}
-                        </span>
-                        <span className="opacity-80">{w.status}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-
-            {activeTab === "Tokenomics" && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Tokenomics</h3>
-                <p className="text-sm opacity-80">
-                  18,000 points = 1 token. 50% total airdrop, 60% unlocked during TGE, 40%
-                  vested.
-                </p>
-              </div>
-            )}
-
-            {activeTab === "Airdrop" && (
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Airdrop</h3>
-                {!airdropInfo ? (
-                  <p className="text-sm opacity-80">Loading airdrop info...</p>
-                ) : (
-                  <div className="space-y-2 text-sm">
-                    <p>Total Eligible: {airdropInfo.totalEligible} JP18</p>
-                    <p>Claimed: {airdropInfo.claimed} JP18</p>
-                    <p>Claimable: {airdropInfo.claimable} JP18</p>
-                    <button
-                      onClick={handleClaimAirdrop}
-                      disabled={claiming || airdropInfo.claimable <= 0}
-                      className={`mt-3 w-full py-2 rounded-lg font-semibold ${
-                        claiming || airdropInfo.claimable <= 0
-                          ? "bg-gray-500 text-gray-200"
-                          : "bg-yellow-400 text-black hover:bg-yellow-300"
-                      }`}
-                    >
-                      {claiming ? "Claiming..." : "Claim Airdrop"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
