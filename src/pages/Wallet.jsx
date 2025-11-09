@@ -299,14 +299,19 @@ const handleSendWithdraw = async () => {
 
     console.log("Wallet address ", walletAddress, "Withdraw to ", withdrawTo);
 
+    const sender = parseAddress(walletAddress);
+    const recipient = parseAddress(withdrawTo);
+
     const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
-    const walletContract = await client.open(parseAddress(walletAddress));
+    console.log("sender address ", sender, "Withdraw recipient ", recipient);
+
+    const walletContract = await client.open(sender);
 
     console.log("wallet contract created");
 
     await walletContract.send({
-      to: withdrawTo,
+      to: recipient,
       value: amountNano,
       payload: "",
     });
