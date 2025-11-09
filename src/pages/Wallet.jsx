@@ -298,16 +298,11 @@ const handleSendWithdraw = async () => {
       return;
     }
 
-    if (!recipientAddress || !myWalletAddress) {
-      alert("Invalid wallet address format!");
-      return;
-    }
-
     const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
     const walletContract = await client.open(myWalletAddress);
     await walletContract.send({
-      to: recipientAddress,
+      to: withdrawTo,
       value: amountNano,
       payload: "",
     });
