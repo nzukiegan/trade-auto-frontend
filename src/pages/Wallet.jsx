@@ -111,34 +111,96 @@ export default function TapxWallet() {
     }
   };
 
-  const loadAssets = async () => {
-    try {
-      if (!walletAddress) return;
-      setLoading(true);
-      setError(null);
+ const loadAssets = async () => {
+  try {
+    if (!walletAddress) return;
+    setLoading(true);
+    setError(null);
 
-      const address = Address.parse(walletAddress);
-      const tonBalanceNano = await client.getBalance(address);
-      const tonBalance = Number(tonBalanceNano) / 1e9;
+    // TON balance
+    const address = Address.parse(walletAddress);
+    const tonBalanceNano = await client.getBalance(address);
+    const tonAmount = Number(tonBalanceNano) / 1e9;
 
-      const response = await fetch(`https://tonapi.io/v2/accounts/${walletAddress}/jettons`);
-      console.log("Assets response ", response);
-      const data = await response.json();
-      const jettons =
-        data.balances?.map((j) => ({
-          symbol: j.jetton.symbol || "Unknown",
-          amount: (Number(j.balance) / 10 ** (j.jetton.decimals || 9)).toFixed(2),
-        })) || [];
+    // Get jettons from TonAPI
+    const resp = await fetch(`https://tonapi.io/v2/accounts/${walletAddress}/jettons`);
+    const data = await resp.json();
 
-      const allAssets = [{ symbol: "TON", amount: tonBalance.toFixed(3) }, ...jettons];
-      setAssets(allAssets);
-    } catch (err) {
-      console.error("Failed to load assets:", err);
-      setError("Failed to load assets. Please try again.");
-    } finally {
-      setLoading(false);
+    // Build jetton objects with contract and decimals
+    const jettons =
+      (data.balances || []).map((j) => {
+        const decimals = j.jetton?.decimals ?? 9;
+        const amount = (Number(j.balance) / 10 ** decimals);
+        return {
+          symbol: j.jetton?.symbol || "Unknown",
+          contract: j.jetton?.address || null,
+          decimals,
+          amount,
+        };
+      }) || [];
+
+    // Prepare price lookups using CoinGecko (public API)
+    // Map token symbols to coin ids — extend this for custom jettons
+    const tokenSymbolToCoingeckoId = {
+      TON: "toncoin",
+      USDT: "tether",
+      USDC: "usd-coin",
+      // add known mappings: "JP18": "your-coingecko-id-if-exists"
+    };
+
+    // Collect symbols for price query
+    const symbols = Array.from(new Set([ "TON", ...jettons.map(j => j.symbol) ]));
+    const ids = symbols
+      .map(s => tokenSymbolToCoingeckoId[s] || null)
+      .filter(Boolean)
+      .join(",");
+
+    // Fetch prices from CoinGecko if we have any known ids
+    let prices = {};
+    if (ids.length > 0) {
+      try {
+        const priceResp = await fetch(
+          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
+        );
+        const priceJson = await priceResp.json();
+        // invert mapping: symbol -> usd price
+        for (const [sym, cgId] of Object.entries(tokenSymbolToCoingeckoId)) {
+          if (priceJson[cgId]) prices[sym] = priceJson[cgId].usd;
+        }
+      } catch (err) {
+        console.warn("Failed to fetch prices from CoinGecko:", err);
+      }
     }
-  };
+
+    // Build final assets array with optional USD values
+    const tonAsset = {
+      symbol: "TON",
+      amount: tonAmount,
+      contract: null,
+      decimals: 9,
+      priceUSD: prices["TON"] ?? null,
+      valueUSD: prices["TON"] ? tonAmount * prices["TON"] : null,
+    };
+
+    const jettonAssets = jettons.map((j) => ({
+      symbol: j.symbol,
+      amount: Number(j.amount.toFixed(6)), // keep precision reasonable
+      contract: j.contract,
+      decimals: j.decimals,
+      priceUSD: prices[j.symbol] ?? null,
+      valueUSD: prices[j.symbol] ? Number((j.amount * prices[j.symbol]).toFixed(6)) : null,
+    }));
+
+    const allAssets = [tonAsset, ...jettonAssets];
+    setAssets(allAssets);
+  } catch (err) {
+    console.error("Failed to load assets:", err);
+    setError("Failed to load assets. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const loadWithdrawals = async () => {
     if (!walletAddress) return;
@@ -182,9 +244,6 @@ export default function TapxWallet() {
     }
   };
 
-  /** ========================
-   *  WITHDRAW HANDLERS
-   * ======================== */
   const handleWithdraw = (asset) => {
     if (!walletConnected) {
       alert("Connect your wallet first.");
@@ -217,6 +276,14 @@ export default function TapxWallet() {
       alert("❌ Withdraw failed.");
     }
   };
+
+  const handleDeposit = async () => {
+
+  }
+
+  const handleConvert = async () => {
+
+  }
 
   useEffect(() => {
     if (walletConnected) {
@@ -287,11 +354,26 @@ export default function TapxWallet() {
                   </span>
                 </div>
                 <div className="flex space-x-3 mt-3">
+
+                  <button
+                    onClick={() => handleDeposit(asset)}
+                    className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
+                  >
+                    Deposit
+                  </button>
+
                   <button
                     onClick={() => handleWithdraw(asset)}
                     className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
                   >
                     Withdraw
+                  </button>
+
+                  <button
+                    onClick={() => handleConvert(asset)}
+                    className="flex-1 bg-yellow-400 text-black py-2 rounded-md font-medium text-sm hover:bg-yellow-300"
+                  >
+                    Convert
                   </button>
                 </div>
               </div>
