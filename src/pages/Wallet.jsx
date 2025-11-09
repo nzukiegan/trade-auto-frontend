@@ -7,7 +7,7 @@ import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
 import { TonConnectUI } from "@tonconnect/ui";
 import { TON_RPC_URL, TON_MANIFEST_URL } from "../config/env.js";
-import QRCode from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function TapxWallet() {
   const { user } = useApp();
@@ -336,7 +336,7 @@ export default function TapxWallet() {
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 w-[350px] text-center shadow-xl">
               <h2 className="text-lg font-semibold mb-4">Deposit TON</h2>
-              <QRCode value={walletAddress} size={180} />
+              <QRCodeCanvas value={walletAddress} size={200} />
               <p className="mt-3 font-mono break-all">{walletAddress}</p>
               <button
                 onClick={copyToClipboard}
