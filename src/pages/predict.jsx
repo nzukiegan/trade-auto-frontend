@@ -10,6 +10,8 @@ import wierdStar from "../assets/wierdStar.svg";
 import { TON_MANIFEST_URL, TREASURY_WALLET_ADDRESS, COINGECKO_PRICE_URL} from "../config/env.js";
 import arrowUp from "../assets/arrow-up.png";
 import arrowDown from "../assets/arrow-down.png";
+import { useTonConnect } from "../contexts/TonConnectContext.jsx";
+
 
 const Predict = () => {
   const { miningData, predictions, addNotification, loadPredictions } = useApp();
@@ -17,7 +19,7 @@ const Predict = () => {
   const [creatingPrediction, setCreatingPrediction] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
   const [activeVolume, setActiveVolume] = useState(0);
-  const [tonConnect, setTonConnect] = useState(null);
+  const { tonConnect, walletAddress, walletConnected } = useTonConnect();
   const [activeMarketsChange, setActiveMarketsChange] = useState(0);
   const [activeMarketsChangeDirection, setActiveMarketsChangeDirection] = useState("");
   const [marketVolumeChange24hr, setMarketVolumeChange24hr] = useState(0);
@@ -208,11 +210,40 @@ const Predict = () => {
       <div className="bg-white w-full max-w-sm rounded-xl overflow-hidden">
         {/* Header */}
         <div className="flex justify-between items-center p-4 sticky top-0 bg-white z-10">
+          <img src={wierdStar} alt="Logo" className="w-8 h-8" />
 
-          <img src={wierdStar}/>
-          <button className="bg-green-500 text-white text-sm px-4 py-2 rounded-lg" onClick={connectWallet}>
-            Connect Wallet
-          </button>
+          {walletConnected ? (
+            <button
+              className="bg-red-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              onClick={async () => {
+                try {
+                  await tonConnect.disconnect();
+                  setWalletConnected(false);
+                  setWalletAddress(null);
+                  alert("Wallet disconnected");
+                } catch (err) {
+                  console.error("Disconnect error:", err);
+                  alert("Failed to disconnect wallet");
+                }
+              }}
+            >
+              Disconnect ({walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)})
+            </button>
+          ) : (
+            <button
+              className="bg-green-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-600 transition"
+              onClick={async () => {
+                try {
+                  await tonConnect.connectWallet();
+                } catch (err) {
+                  console.error("Connect error:", err);
+                  alert("Failed to connect wallet");
+                }
+              }}
+            >
+              Connect Wallet
+            </button>
+          )}
         </div>
 
         {/* Hero Section */}

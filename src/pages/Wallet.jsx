@@ -12,15 +12,20 @@ import { TonConnectUI } from "@tonconnect/ui";
 import { Copy, X } from "lucide-react";
 import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
 import { QRCodeCanvas } from "qrcode.react";
+import { useTonConnect } from "../contexts/TonConnectContext.jsx";
 
 export default function TapxWallet() {
+  const {
+  tonConnect,
+  walletAddress,
+  walletConnected,
+  setWalletAddress,
+  setWalletConnected,
+} = useTonConnect();
   const { user } = useApp();
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [tonConnect, setTonConnect] = useState(null);
   const [depositInfo, setDepositInfo] = useState(null);
   const [depositModal, setDepositModal] = useState(null);
   const [withdrawModal, setWithdrawModal] = useState(null);
