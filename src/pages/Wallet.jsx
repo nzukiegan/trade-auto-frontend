@@ -300,22 +300,21 @@ const handleSendWithdraw = async () => {
 
     console.log("Wallet address ", walletAddress, "Withdraw to ", withdrawTo);
 
-    const sender = parseAddress(walletAddress);
     const recipient = parseAddress(withdrawTo);
 
     const amountNano = toNano(withdrawAmount);
 
-    console.log("sender address ", sender, "Withdraw recipient ", recipient, " amount Nano ", amountNano);
+    const tx = {
+      validUntil: Math.floor(Date.now() / 1000) + 300,
+      messages: [
+        {
+          address: recipient.toString(),
+          amount: amountNano.toString(),
+        },
+      ],
+    };
 
-    const walletContract = await client.open(WalletContractV4.create({ address: sender }));
-
-    console.log("wallet contract created");
-
-    await walletContract.send({
-      to: recipient,
-      value: amountNano,
-      payload: "",
-    });
+    await connector.sendTransaction(tx);
 
     alert("✅ Transaction sent successfully!");
     setWithdrawModal(null);
