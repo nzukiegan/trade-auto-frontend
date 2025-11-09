@@ -72,10 +72,11 @@ export default function TapxWallet() {
     const fetchTonPrice = async () => {
       try {
         const res = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=toncoin&vs_currencies=usd"
+          "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,tether&vs_currencies=usd"
         );
         const data = await res.json();
-        setTonPriceUSD(data.toncoin.usd);
+        const tonPriceUsd = data["the-open-network"]?.usd;
+        setTonPriceUSD(tonPriceUSD);
       } catch (err) {
         console.error("Failed to fetch TON price:", err);
       }
