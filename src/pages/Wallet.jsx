@@ -129,9 +129,6 @@ export default function TapxWallet() {
 
   const handleConnectWallet = async () => {
     try {
-      await tonConnect.disconnect();
-      setWalletAddress(null);
-      setWalletConnected(false);
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
       console.log("Connected wallet ", wallet);
@@ -400,7 +397,11 @@ const handleSendWithdraw = async () => {
 
         {/* ASSETS */}
         <h2 className="text-lg font-semibold mt-6 mb-3">My Assets</h2>
-        {loading ? (
+        {!walletConnected ? (
+            <p className="text-center text-gray-500 mt-4">
+              Connect your wallet to view your assets.
+            </p>
+          ) : loading ? (
             <div className="flex justify-center mt-4">
               <CircularProgress color="inherit" />
             </div>
