@@ -441,7 +441,7 @@ const handleSendWithdraw = async () => {
               placeholder="Enter amount"
               value={withdrawAmount}
               onChange={(e) => {
-                setWithdrawUSD(withdraw nAmount * (tonPriceUSD || 0));
+                setWithdrawUSD(withdrawAmount * (tonPriceUSD || 0));
               }}
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
