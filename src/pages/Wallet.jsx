@@ -305,7 +305,7 @@ const handleSendWithdraw = async () => {
 
     const amountNano = toNano(withdrawAmount);
 
-    console.log("sender address ", sender, "Withdraw recipient ", recipient, "Amount nano", amountNano);
+    console.log("sender address ", sender, "Withdraw recipient ", recipient, " amount Nano ", amountNano);
 
     const walletContract = await client.open(WalletContractV4.create({ address: sender }));
 
@@ -469,21 +469,9 @@ const handleSendWithdraw = async () => {
               onChange={(e) => {
                 const value = e.target.value;
                 setWithdrawAmount(value);
-
-                const numericValue = parseFloat(value);
-                if (!isNaN(numericValue)) {
-                  setWithdrawUSD(numericValue * (tonPriceUSD || 0));
-                } else {
-                  setWithdrawUSD(0);
-                }
-
-                console.log(
-                  "Value:", value,
-                  "TON price USD:", tonPriceUSD,
-                  "Withdraw USD:", numericValue * (tonPriceUSD || 0)
-                );
+                setWithdrawUSD(value * (tonPriceUSD || 0));
+                console.log("Value ", value, "ton price usd", tonPriceUSD, "widthdraw usd ", withdrawUSD);
               }}
-            />
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
             <p className="text-xs text-gray-500 mb-3">
