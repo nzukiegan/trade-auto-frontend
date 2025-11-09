@@ -300,7 +300,10 @@ const handleSendWithdraw = async () => {
 
     const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
-    const walletContract = await client.open(walletAddress);
+    const walletContract = await client.open(parseAddress(walletAddress));
+
+    console.log("wallet contract created");
+    
     await walletContract.send({
       to: withdrawTo,
       value: amountNano,
