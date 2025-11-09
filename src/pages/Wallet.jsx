@@ -276,7 +276,6 @@ export default function TapxWallet() {
   };
 
 
-  // Helper function to parse any TON address (raw or user-friendly)
 const parseAddress = (addr) => {
   try {
     if (!addr) return null;
@@ -298,12 +297,14 @@ const handleSendWithdraw = async () => {
       return;
     }
 
+    console.log("Wallet address ", walletAddress, "Withdraw to ", withdrawTo);
+
     const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
     const walletContract = await client.open(parseAddress(walletAddress));
 
     console.log("wallet contract created");
-    
+
     await walletContract.send({
       to: withdrawTo,
       value: amountNano,
