@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
-import { TonClient, Address } from "@ton/ton";
+import { TonClient, WalletContractV4 } from "@ton/ton";
 import apiService from "../services/api.js";
 import { useApp } from "../contexts/AppContext.jsx";
 import BEAR from "../assets/grey bear.png";
@@ -306,7 +306,7 @@ const handleSendWithdraw = async () => {
 
     console.log("sender address ", sender, "Withdraw recipient ", recipient);
 
-    const walletContract = await client.open(sender);
+    const walletContract = await client.open(WalletContractV4.create({ address: sender }));
 
     console.log("wallet contract created");
 
