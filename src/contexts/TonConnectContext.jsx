@@ -15,7 +15,8 @@ export function TonConnectProvider({ children }) {
       setTonConnect(connector);
 
       const wallet = connector.account;
-      if (wallet) {
+      console.log("Wallet ", wallet)
+      if (wallet.address) {
         setWalletAddress(wallet.address);
         setWalletConnected(true);
       }
