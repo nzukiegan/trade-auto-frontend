@@ -28,6 +28,7 @@ export default function TapxWallet() {
   const [withdrawals, setWithdrawals] = useState([]);
   const [airdropInfo, setAirdropInfo] = useState(null);
   const [tonPriceUSD, setTonPriceUSD] = useState(null);
+  const [tetherPriceUSD, setTetherPriceUSD] = useState(null);
   const [withdrawUSD, setWithdrawUSD] = useState(0);
   const [claiming, setClaiming] = useState(false);
   const iconMap = { TON: tonIcon, USDt: usdIcon };
@@ -76,8 +77,10 @@ export default function TapxWallet() {
         );
         const data = await res.json();
         const tonPriceUsd = data["the-open-network"]?.usd;
+        const tetherPriceUsd =  data["tether"]?.usd;
         console.log("Price results ", data)
         setTonPriceUSD(tonPriceUSD);
+        setTetherPriceUSD(tetherPriceUSD);
       } catch (err) {
         console.error("Failed to fetch TON price:", err);
       }
@@ -441,7 +444,9 @@ const handleSendWithdraw = async () => {
               placeholder="Enter amount"
               value={withdrawAmount}
               onChange={(e) => {
-                setWithdrawUSD(withdrawAmount * (tonPriceUSD || 0));
+                const value = e.target.value;
+                setWithdrawAmount(value); // update the withdraw amount
+                setWithdrawUSD(value * (tonPriceUSD || 0)); // calculate USD
               }}
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
