@@ -321,7 +321,7 @@ const handleSendWithdraw = async () => {
 
   useEffect(() => {
     if (walletConnected) {
-      console.log("Wallet connected fetching assets and withdrawals")
+      console.log("Wallet connected fetching assets and withdrawals, wallet address", walletAddress)
       loadAssets();
       loadWithdrawals();
       loadAirdropInfo();
