@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
-import { TonClient, WalletContractV4 } from "@ton/ton";
+import { TonClient, WalletContractV4, Address} from "@ton/ton";
 import apiService from "../services/api.js";
 import { useApp } from "../contexts/AppContext.jsx";
 import BEAR from "../assets/grey bear.png";
