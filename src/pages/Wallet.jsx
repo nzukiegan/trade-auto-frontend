@@ -63,6 +63,33 @@ export default function TapxWallet() {
     initTonConnect();
   }, []);
 
+
+  useEffect(() => {
+    if (!tonConnect) return;
+
+    const checkConnection = async () => {
+      const wallet = tonConnect.account;
+
+      if (wallet && !walletConnected) {
+        setWalletAddress(wallet.address);
+        setWalletConnected(true);
+        await apiService.connectWallet(wallet.address);
+        await loadAssets();
+        await loadWithdrawals();
+        await loadAirdropInfo();
+      }
+
+      if (!wallet && walletConnected) {
+        setWalletConnected(false);
+        setWalletAddress("");
+      }
+    };
+
+    const interval = setInterval(checkConnection, 5000);
+
+    return () => clearInterval(interval);
+  }, [tonConnect, walletConnected]);
+
   const handleConnectWallet = async () => {
     try {
       await tonConnect.disconnect();
