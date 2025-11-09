@@ -76,8 +76,8 @@ export default function TapxWallet() {
           "https://api.coingecko.com/api/v3/simple/price?ids=the-open-network,tether&vs_currencies=usd"
         );
         const data = await res.json();
-        const tonPriceUsd = data["the-open-network"]?.usd;
-        const tetherPriceUsd =  data["tether"]?.usd;
+        const tonPriceUSD = data["the-open-network"]?.usd;
+        const tetherPriceUSD =  data["tether"]?.usd;
         console.log("Price results ", data)
         setTonPriceUSD(tonPriceUSD);
         setTetherPriceUSD(tetherPriceUSD);
