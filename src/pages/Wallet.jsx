@@ -98,6 +98,11 @@ export default function TapxWallet() {
 
   const handleConnectWallet = async () => {
     try {
+      try{
+        await tonConnect.disconnectWallet();
+      }catch(error){
+
+      }
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
       if (wallet) {
