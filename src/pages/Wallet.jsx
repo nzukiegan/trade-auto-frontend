@@ -314,7 +314,7 @@ const handleSendWithdraw = async () => {
       ],
     };
 
-    await connector.sendTransaction(tx);
+    await tonConnect.sendTransaction(tx);
 
     alert("✅ Transaction sent successfully!");
     setWithdrawModal(null);
