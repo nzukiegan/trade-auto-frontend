@@ -42,41 +42,6 @@ export default function TapxWallet() {
   const client = new TonClient({ endpoint: TON_RPC_URL });
 
   useEffect(() => {
-    const initTonConnect = async () => {
-      const connector = new TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
-      setTonConnect(connector);
-
-      try {
-        if (user?.walletAddress) {
-          setWalletAddress(user.walletAddress);
-          setWalletConnected(true);
-          await loadAssets();
-          await loadWithdrawals();
-          await loadAirdropInfo();
-          return;
-        }
-      } catch (err) {
-        console.error("Failed to fetch user wallet from backend:", err);
-      }
-
-      const wallet = connector.account;
-      console.log("Wallet ", wallet);
-      if (wallet) {
-        setWalletAddress(wallet.address);
-        setWalletConnected(true);
-        await apiService.connectWallet(wallet.address);
-        await loadAssets();
-        await loadWithdrawals();
-        await loadAirdropInfo();
-      } else {
-        setWalletConnected(false);
-      }
-    };
-
-    initTonConnect();
-  }, []);
-
-  useEffect(() => {
     const fetchTonPrice = async () => {
       try {
         const res = await fetch(
