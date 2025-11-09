@@ -316,6 +316,8 @@ const handleSendWithdraw = async () => {
 
     await tonConnect.sendTransaction(tx);
 
+    await apiService.withdrawUSDT(withdrawAmount, withdrawTo, walletAddress, asset = 'ton')
+
     alert("✅ Transaction sent successfully!");
     setWithdrawModal(null);
     setWithdrawAmount("");
@@ -326,7 +328,6 @@ const handleSendWithdraw = async () => {
     alert("❌ Withdraw failed");
   }
 };
-
 
   const handleConvert = async () => {
 
