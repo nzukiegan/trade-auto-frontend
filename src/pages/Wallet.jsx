@@ -117,7 +117,7 @@ export default function TapxWallet() {
       }
     };
 
-    const interval = setInterval(checkConnection, 5000);
+    const interval = setInterval(checkConnection, 2000);
 
     return () => clearInterval(interval);
   }, [tonConnect, walletConnected]);
