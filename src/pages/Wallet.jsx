@@ -447,6 +447,7 @@ const handleSendWithdraw = async () => {
                 const value = e.target.value;
                 setWithdrawAmount(value); // update the withdraw amount
                 setWithdrawUSD(value * (tonPriceUSD || 0)); // calculate USD
+                console.log("Value ", value, "ton price usd", tonPriceUSD, "widthdraw usd ", withdrawUSD);
               }}
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
