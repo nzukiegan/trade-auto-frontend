@@ -14,12 +14,18 @@ import { useTonConnect } from "../contexts/TonConnectContext.jsx";
 
 
 const Predict = () => {
+    const {
+    tonConnect,
+    walletAddress,
+    walletConnected,
+    setWalletAddress,
+    setWalletConnected,
+  } = useTonConnect();
   const { miningData, predictions, addNotification, loadPredictions } = useApp();
   const [activeTab, setActiveTab] = useState("active");
   const [creatingPrediction, setCreatingPrediction] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
   const [activeVolume, setActiveVolume] = useState(0);
-  const { tonConnect, walletAddress, walletConnected } = useTonConnect();
   const [activeMarketsChange, setActiveMarketsChange] = useState(0);
   const [activeMarketsChangeDirection, setActiveMarketsChangeDirection] = useState("");
   const [marketVolumeChange24hr, setMarketVolumeChange24hr] = useState(0);
@@ -227,7 +233,7 @@ const Predict = () => {
                 }
               }}
             >
-              Disconnect ({walletAddress?.slice(0, 4)}...{walletAddress?.slice(-4)})
+              Disconnect
             </button>
           ) : (
             <button

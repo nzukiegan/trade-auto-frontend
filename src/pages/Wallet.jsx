@@ -72,19 +72,9 @@ export default function TapxWallet() {
   };
 
   useEffect(() => {
-  if (!tonConnect) return;
+    if (!tonConnect) return;
 
-  const wallet = tonConnect.account;
-  if (wallet) {
-    setWalletAddress(wallet.address);
-    setWalletConnected(true);
-    apiService.connectWallet(wallet.address);
-    loadAssets();
-    loadWithdrawals();
-    loadAirdropInfo();
-  }
-
-  const unsubscribe = tonConnect.onStatusChange((wallet) => {
+    const wallet = tonConnect.account;
     if (wallet) {
       setWalletAddress(wallet.address);
       setWalletConnected(true);
@@ -92,23 +82,28 @@ export default function TapxWallet() {
       loadAssets();
       loadWithdrawals();
       loadAirdropInfo();
-    } else {
-      setWalletConnected(false);
-      setWalletAddress("");
-      apiService.disconnectWallet();
     }
-  });
 
-  return () => unsubscribe();
-}, [tonConnect]);
+    const unsubscribe = tonConnect.onStatusChange((wallet) => {
+      if (wallet) {
+        setWalletAddress(wallet.address);
+        setWalletConnected(true);
+        apiService.connectWallet(wallet.address);
+        loadAssets();
+        loadWithdrawals();
+        loadAirdropInfo();
+      } else {
+        setWalletConnected(false);
+        setWalletAddress("");
+        apiService.disconnectWallet();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [tonConnect]);
 
   const handleConnectWallet = async () => {
     try {
-      try{
-        await tonConnect.disconnectWallet();
-      }catch(error){
-
-      }
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
       if (wallet) {
