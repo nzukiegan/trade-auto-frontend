@@ -316,7 +316,7 @@ const handleSendWithdraw = async () => {
 
     await tonConnect.sendTransaction(tx);
 
-    await apiService.withdrawUSDT(withdrawAmount, withdrawTo, walletAddress, 'ton')
+    await apiService.withdrawUSDT(withdrawAmount, withdrawTo, walletAddress, 'TON')
 
     alert("✅ Transaction sent successfully!");
     setWithdrawModal(null);

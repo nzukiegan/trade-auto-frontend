@@ -190,7 +190,7 @@ class ApiService {
     return response.data;
   }
 
-  async withdrawUSDT(amount, recipient, walletAddress, asset = 'ton') {
+  async withdrawUSDT(amount, recipient, walletAddress, asset) {
     const response = await this.client.post('/api/wallet/withdraw', {
       amount,
       recipient,
