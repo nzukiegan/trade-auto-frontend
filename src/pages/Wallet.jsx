@@ -41,7 +41,7 @@ export default function TapxWallet() {
 
       try {
         if (user?.walletAddress) {
-          setWalletAddress(user.walletAddress);
+          setWalletAddress(parseAddress(user.walletAddress));
           setWalletConnected(true);
           await loadAssets();
           await loadWithdrawals();
@@ -55,7 +55,7 @@ export default function TapxWallet() {
       const wallet = connector.account;
       console.log("Wallet ", wallet);
       if (wallet) {
-        setWalletAddress(wallet.address);
+        setWalletAddress(parseAddress(wallet.address));
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
@@ -106,7 +106,7 @@ export default function TapxWallet() {
       const wallet = tonConnect.account;
 
       if (wallet && !walletConnected) {
-        setWalletAddress(wallet.address);
+        setWalletAddress(parseAddress(wallet.address));
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
@@ -134,7 +134,7 @@ export default function TapxWallet() {
       const wallet = tonConnect.account;
       console.log("Connected wallet ", wallet);
       if (wallet) {
-        setWalletAddress(wallet.address);
+        setWalletAddress(parseAddress(wallet.address));
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
@@ -248,9 +248,6 @@ export default function TapxWallet() {
     }
   };
 
-  /** ========================
-   *  CLAIM AIRDROP
-   * ======================== */
   const handleClaimAirdrop = async () => {
     try {
       if (!walletConnected) return alert("Connect your wallet first.");
@@ -278,25 +275,42 @@ export default function TapxWallet() {
     setWithdrawModal(asset);
   };
 
+
+  // Helper function to parse any TON address (raw or user-friendly)
+const parseAddress = (addr) => {
+  try {
+    if (!addr) return null;
+    if (addr.startsWith("0:")) {
+      return Address.parseRaw(addr);
+    } else {
+      return Address.parse(addr);
+    }
+  } catch (err) {
+    console.error("Invalid address:", addr, err);
+    return null;
+  }
+};
+
 const handleSendWithdraw = async () => {
   try {
     if (!withdrawAmount || !withdrawTo) {
       alert("Enter amount and wallet address");
       return;
     }
-    
-    let address;
-    if (withdrawTo.startsWith("0:")) {
-      address = Address.parseRaw(withdrawTo);
-    } else {
-      address = Address.parse(withdrawTo);
+
+    const recipientAddress = parseAddress(withdrawTo);
+    const myWalletAddress = parseAddress(walletAddress);
+
+    if (!recipientAddress || !myWalletAddress) {
+      alert("Invalid wallet address format!");
+      return;
     }
 
     const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
-    const walletContract = await client.open(walletAddress);
+    const walletContract = await client.open(myWalletAddress);
     await walletContract.send({
-      to: address,
+      to: recipientAddress,
       value: amountNano,
       payload: "",
     });
@@ -311,6 +325,7 @@ const handleSendWithdraw = async () => {
     alert("❌ Withdraw failed");
   }
 };
+
 
   const handleConvert = async () => {
 
