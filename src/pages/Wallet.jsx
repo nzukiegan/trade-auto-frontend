@@ -27,6 +27,8 @@ export default function TapxWallet() {
   const [activeTab, setActiveTab] = useState("Withdrawals");
   const [withdrawals, setWithdrawals] = useState([]);
   const [airdropInfo, setAirdropInfo] = useState(null);
+  const [tonPriceUSD, setTonPriceUSD] = useState(null);
+  const [withdrawUSD, setWithdrawUSD] = useState(0);
   const [claiming, setClaiming] = useState(false);
   const iconMap = { TON: tonIcon, USDt: usdIcon };
   const client = new TonClient({ endpoint: TON_RPC_URL });
@@ -65,6 +67,22 @@ export default function TapxWallet() {
 
     initTonConnect();
   }, []);
+
+  useEffect(() => {
+    const fetchTonPrice = async () => {
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=toncoin&vs_currencies=usd"
+        );
+        const data = await res.json();
+        setTonPriceUSD(data.toncoin.usd);
+      } catch (err) {
+        console.error("Failed to fetch TON price:", err);
+      }
+    };
+    fetchTonPrice();
+  }, []);
+
 
   const handleDeposit = (asset) => {
     if (!walletConnected) { alert("Connect your wallet first."); return; }
@@ -255,30 +273,33 @@ export default function TapxWallet() {
     setWithdrawModal(asset);
   };
 
-  const handleSendWithdraw = async () => {
-    try {
-      if (!withdrawAmount || !withdrawTo) {
-        alert("Please enter amount and wallet address.");
-        return;
-      }
-
-      const res = await apiService.post(`/withdraw`, {
-        walletAddress,
-        asset: withdrawModal.symbol,
-        amount: parseFloat(withdrawAmount),
-        to: withdrawTo,
-      });
-
-      alert(`✅ Withdraw request sent: ${res.data.status}`);
-      setWithdrawModal(null);
-      setWithdrawAmount("");
-      setWithdrawTo("");
-      loadWithdrawals();
-    } catch (err) {
-      console.error("Withdraw failed:", err);
-      alert("❌ Withdraw failed.");
+const handleSendWithdraw = async () => {
+  try {
+    if (!withdrawAmount || !withdrawTo) {
+      alert("Enter amount and wallet address");
+      return;
     }
-  };
+
+    const address = Address.parse(withdrawTo);
+    const amountNano = BigInt(Number(withdrawAmount) * 1e9);
+
+    const walletContract = await client.open(walletAddress);
+    const transfer = await walletContract.send({
+      to: address,
+      value: amountNano,
+      payload: "",
+    });
+
+    alert("✅ Transaction sent successfully!");
+    setWithdrawModal(null);
+    setWithdrawAmount("");
+    setWithdrawTo("");
+    loadAssets();
+  } catch (err) {
+    console.error("Withdraw failed:", err);
+    alert("❌ Withdraw failed");
+  }
+};
 
   const handleConvert = async () => {
 
@@ -380,46 +401,6 @@ export default function TapxWallet() {
           </div>
         )}
 
-        {/* WITHDRAW MODAL */}
-        {withdrawModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-[350px] text-center shadow-xl">
-              <h2 className="text-lg font-semibold mb-2">
-                Withdraw {withdrawModal.symbol}
-              </h2>
-              <input
-                type="number"
-                step="any"
-                placeholder="Enter amount"
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm"
-              />
-              <input
-                type="text"
-                placeholder="Destination wallet address"
-                value={withdrawTo}
-                onChange={(e) => setWithdrawTo(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm"
-              />
-              <div className="flex justify-between gap-3">
-                <button
-                  onClick={() => setWithdrawModal(null)}
-                  className="flex-1 bg-gray-200 rounded-lg py-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSendWithdraw}
-                  className="flex-1 bg-blue-600 text-white rounded-lg py-2"
-                >
-                  Send
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
           {depositModal && (
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl p-6 w-[350px] flex flex-col items-center text-center shadow-xl relative">
@@ -440,6 +421,58 @@ export default function TapxWallet() {
               </div>
             </div>
           )}
+
+        {withdrawModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[350px] text-center shadow-xl relative">
+            <button
+              onClick={() => setWithdrawModal(null)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+            >
+              <X size={20} />
+            </button>
+            <h2 className="text-lg font-semibold mb-4">Withdraw {withdrawModal.symbol}</h2>
+
+            <input
+              type="number"
+              step="any"
+              placeholder="Enter amount"
+              value={withdrawAmount}
+              onChange={(e) => {
+                setWithdrawAmount(e.target.value);
+                setWithdrawUSD(Number(e.target.value) * (tonPriceUSD || 0));
+              }}
+              className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
+            />
+            <p className="text-xs text-gray-500 mb-3">
+              ≈ ${withdrawUSD.toFixed(2)} USD
+            </p>
+
+            <input
+              type="text"
+              placeholder="Destination wallet address"
+              value={withdrawTo}
+              onChange={(e) => setWithdrawTo(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-2 mb-3 text-sm"
+            />
+
+            <div className="flex justify-between gap-3">
+              <button
+                onClick={() => setWithdrawModal(null)}
+                className="flex-1 bg-gray-200 rounded-lg py-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendWithdraw}
+                className="flex-1 bg-blue-600 text-white rounded-lg py-2"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* TABS SECTION */}
         <div className="mt-8">
