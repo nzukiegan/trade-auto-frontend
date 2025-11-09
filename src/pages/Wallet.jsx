@@ -7,6 +7,7 @@ import { useApp } from "../contexts/AppContext.jsx";
 import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
+import { CircularProgress } from "@mui/material";
 import { TonConnectUI } from "@tonconnect/ui";
 import { Copy, X } from "lucide-react";
 import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
@@ -240,6 +241,22 @@ export default function TapxWallet() {
     }
   };
 
+  const handleDisconnectWallet = async () => {
+    try {
+      if (!tonConnect) return;
+
+      await tonConnect.disconnect();
+      setWalletConnected(false);
+      setWalletAddress("");
+
+      await apiService.disconnectWallet();
+      alert("Wallet disconnected successfully.");
+    } catch (err) {
+      console.error("Failed to disconnect wallet:", err);
+      alert("Failed to disconnect wallet. Try again.");
+    }
+  };
+
   const loadAirdropInfo = async () => {
     if (!walletAddress) return;
     try {
@@ -345,47 +362,53 @@ const handleSendWithdraw = async () => {
   return (
     <div className="bg-white min-h-screen font-sans text-gray-800 px-2 py-6 flex justify-center">
       <div className="w-full max-w-sm">
-        {/* HEADER */}
         <div className="text-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800">Your Wallet</h2>
         </div>
 
-        {/* WALLET CARD */}
         <div className="bg-[#001F0C] rounded-2xl p-5 text-white mb-5 flex items-center gap-4 shadow-md">
-          <img src={BEAR} alt="Wallet Mascot" className="w-20 h-17 object-contain" />
-          <div className="flex-1">
-            {walletConnected ? (
-              <>
-                <h2 className="font-bold text-lg leading-tight">Wallet Connected</h2>
-                <p className="text-xs break-all opacity-90 mt-1">{walletAddress}</p>
-              </>
-            ) : (
-              <>
-                <h2 className="font-bold text-lg leading-tight">Connect Your Wallet</h2>
-                <p className="text-sm opacity-80 mt-1">
-                  Secure your assets with a trusted wallet connection.
-                </p>
-                <button
-                  onClick={handleConnectWallet}
-                  className="bg-[#29a847] mt-3 px-6 py-2 rounded-full font-semibold text-sm hover:bg-[#24923f] transition"
-                >
-                  Connect Wallet
-                </button>
-              </>
-            )}
-          </div>
+        <img src={BEAR} alt="Wallet Mascot" className="w-20 h-17 object-contain" />
+        <div className="flex-1">
+          {walletConnected ? (
+            <>
+              <h2 className="font-bold text-lg leading-tight">Wallet Connected</h2>
+              <p className="text-xs break-all opacity-90 mt-1">{walletAddress}</p>
+              <button
+                onClick={handleDisconnectWallet}
+                className="bg-red-600 mt-3 px-6 py-2 rounded-full font-semibold text-sm hover:bg-red-500 transition"
+              >
+                Disconnect Wallet
+              </button>
+            </>
+          ) : (
+            <>
+              <h2 className="font-bold text-lg leading-tight">Connect Your Wallet</h2>
+              <p className="text-sm opacity-80 mt-1">
+                Secure your assets with a trusted wallet connection.
+              </p>
+              <button
+                onClick={handleConnectWallet}
+                className="bg-[#29a847] mt-3 px-6 py-2 rounded-full font-semibold text-sm hover:bg-[#24923f] transition"
+              >
+                Connect Wallet
+              </button>
+            </>
+          )}
         </div>
+      </div>
 
 
         {/* ASSETS */}
         <h2 className="text-lg font-semibold mt-6 mb-3">My Assets</h2>
         {loading ? (
-          <p className="text-center text-gray-500 mt-4">Loading assets...</p>
-        ) : error ? (
-          <p className="text-center text-red-500 mt-4">{error}</p>
-        ) : assets.length === 0 ? (
-          <p className="text-center text-gray-400 mt-4">No assets found.</p>
-        ) : (
+            <div className="flex justify-center mt-4">
+              <CircularProgress color="inherit" />
+            </div>
+          ) : error ? (
+            <p className="text-center text-red-500 mt-4">{error}</p>
+          ) : assets.length === 0 ? (
+            <p className="text-center text-gray-400 mt-4">No assets found.</p>
+          ) : (
           <div className="space-y-3">
             {assets.map((asset, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">

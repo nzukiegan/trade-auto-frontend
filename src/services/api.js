@@ -200,6 +200,12 @@ class ApiService {
     return response.data;
   }
 
+  async disconnectWallet() {
+    const response = await this.client.post('/api/wallet/disconnect');
+    return response.data;
+  }
+
+
   async getLeaderboard(page = 1, limit = 20) {
     const response = await this.client.get('/api/leaderboard', {
       params: { page, limit }

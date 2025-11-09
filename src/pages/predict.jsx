@@ -17,6 +17,7 @@ const Predict = () => {
   const [creatingPrediction, setCreatingPrediction] = useState(false);
   const [totalVolume, setTotalVolume] = useState(0);
   const [activeVolume, setActiveVolume] = useState(0);
+  const [tonConnect, setTonConnect] = useState(null);
   const [activeMarketsChange, setActiveMarketsChange] = useState(0);
   const [activeMarketsChangeDirection, setActiveMarketsChangeDirection] = useState("");
   const [marketVolumeChange24hr, setMarketVolumeChange24hr] = useState(0);
@@ -29,11 +30,6 @@ const Predict = () => {
   const [loading, setLoading] = useState(false);
   const [bettingPrediction, setBettingPrediction] = useState(null); // stores the prediction being bet on
   const [tempBetAmount, setTempBetAmount] = useState(bettingAmount); // temporary input in modal
-
-
-  const connector = new TonConnectUI({
-    manifestUrl: TON_MANIFEST_URL,
-  });
 
   const connectWallet = async () => {
     await connector.connectWallet();
@@ -112,21 +108,6 @@ const Predict = () => {
     setLoading(true);
     try {
       const userWalletAddress = connector.wallet.account.address;
-      const amountNano = toNano("0.1");
-
-      const transferMessage = {
-        to: TREASURY_WALLET_ADDRESS,
-        value: amountNano.toString(),
-        body: "Payment for prediction creation",
-      };
-
-      const transaction = await connector.sendTransaction({
-        validUntil: Math.floor(Date.now() / 1000) + 60,
-        messages: [transferMessage],
-      });
-
-      console.log("Transaction sent:", transaction);
-
       const predictionPayload = {
         ...newPrediction,
         walletAddress: userWalletAddress,
