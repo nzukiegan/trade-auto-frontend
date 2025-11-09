@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { TonConnect } from "@tonconnect/sdk";
 import { TonClient, WalletContractV4, Address} from "@ton/ton";
+import { toNano } from "@ton/core";
 import apiService from "../services/api.js";
 import { useApp } from "../contexts/AppContext.jsx";
 import BEAR from "../assets/grey bear.png";
@@ -302,9 +303,9 @@ const handleSendWithdraw = async () => {
     const sender = parseAddress(walletAddress);
     const recipient = parseAddress(withdrawTo);
 
-    const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
+    const amountNano = toNano(withdrawAmount);
 
-    console.log("sender address ", sender, "Withdraw recipient ", recipient);
+    console.log("sender address ", sender, "Withdraw recipient ", recipient, "Amount nano", amountNano);
 
     const walletContract = await client.open(WalletContractV4.create({ address: sender }));
 
@@ -467,10 +468,22 @@ const handleSendWithdraw = async () => {
               value={withdrawAmount}
               onChange={(e) => {
                 const value = e.target.value;
-                setWithdrawAmount(value); // update the withdraw amount
-                setWithdrawUSD(value * (tonPriceUSD || 0)); // calculate USD
-                console.log("Value ", value, "ton price usd", tonPriceUSD, "widthdraw usd ", withdrawUSD);
+                setWithdrawAmount(value);
+
+                const numericValue = parseFloat(value);
+                if (!isNaN(numericValue)) {
+                  setWithdrawUSD(numericValue * (tonPriceUSD || 0));
+                } else {
+                  setWithdrawUSD(0);
+                }
+
+                console.log(
+                  "Value:", value,
+                  "TON price USD:", tonPriceUSD,
+                  "Withdraw USD:", numericValue * (tonPriceUSD || 0)
+                );
               }}
+            />
               className="w-full border border-gray-300 rounded-lg p-2 mb-1 text-sm"
             />
             <p className="text-xs text-gray-500 mb-3">
