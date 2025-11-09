@@ -7,6 +7,7 @@ import BEAR from "../assets/grey bear.png";
 import tonIcon from "../assets/ton.jpeg";
 import usdIcon from "../assets/usdt.png";
 import { TonConnectUI } from "@tonconnect/ui";
+import { Copy, X } from "lucide-react";
 import { TON_RPC_URL, TON_MANIFEST_URL} from "../config/env.js";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -419,28 +420,26 @@ export default function TapxWallet() {
           </div>
         )}
 
-        
-        {depositModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-[350px] flex flex-col items-center text-center shadow-xl">
-              <h2 className="text-lg font-semibold mb-4">Deposit {depositModal.symbol}</h2>
-              <QRCodeCanvas value={walletAddress} size={200} />
-              <p className="mt-4 break-all">{walletAddress}</p>
-              <button
-                onClick={handleCopyAddress}
-                className="mt-3 bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-500"
-              >
-                Copy Address
-              </button>
-              <button
-                onClick={() => setDepositModal(null)}
-                className="mt-3 bg-gray-200 text-black py-2 px-4 rounded-lg hover:bg-gray-300"
-              >
-                Close
-              </button>
+          {depositModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 w-[350px] flex flex-col items-center text-center shadow-xl relative">
+                <button
+                  onClick={() => setDepositModal(null)}
+                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+                >
+                  <X size={20} />
+                </button>
+                <h2 className="text-lg font-semibold mb-4">Deposit {depositModal.symbol}</h2>
+                <QRCodeCanvas value={walletAddress} size={200} />
+                <div className="mt-4 flex items-center break-all w-full justify-center">
+                  <button onClick={handleCopyAddress} className="mr-2 text-gray-600 hover:text-gray-800">
+                    <Copy size={18} />
+                  </button>
+                  <span>{walletAddress}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* TABS SECTION */}
         <div className="mt-8">
