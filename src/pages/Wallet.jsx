@@ -284,12 +284,18 @@ const handleSendWithdraw = async () => {
       alert("Enter amount and wallet address");
       return;
     }
+    
+    let address;
+    if (withdrawTo.startsWith("0:")) {
+      address = Address.parseRaw(withdrawTo);
+    } else {
+      address = Address.parse(withdrawTo);
+    }
 
-    const address = Address.parse(withdrawTo);
-    const amountNano = BigInt(Number(withdrawAmount) * 1e9);
+    const amountNano = BigInt(Math.floor(Number(withdrawAmount) * 1e9));
 
     const walletContract = await client.open(walletAddress);
-    const transfer = await walletContract.send({
+    await walletContract.send({
       to: address,
       value: amountNano,
       payload: "",
