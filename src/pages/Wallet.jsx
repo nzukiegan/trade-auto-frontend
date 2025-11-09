@@ -76,7 +76,7 @@ export default function TapxWallet() {
         );
         const data = await res.json();
         const tonPriceUsd = data["the-open-network"]?.usd;
-        console.log(data)
+        console.log("Price results ", data)
         setTonPriceUSD(tonPriceUSD);
       } catch (err) {
         console.error("Failed to fetch TON price:", err);
@@ -329,7 +329,7 @@ const handleSendWithdraw = async () => {
           <div className="flex-1">
             {walletConnected ? (
               <>
-                <h2 className="font-bold text-lg leading-tight">Wallet Connected ✅</h2>
+                <h2 className="font-bold text-lg leading-tight">Wallet Connected</h2>
                 <p className="text-xs break-all opacity-90 mt-1">{walletAddress}</p>
               </>
             ) : (
