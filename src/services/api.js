@@ -206,6 +206,11 @@ class ApiService {
     });
     return response.data;
   }
+
+  async getWithdrawals(walletAddress){
+    const res = await this.client.get(`/withdrawals/${walletAddress}`);
+    return res.data;
+  }
 }
 
 export default new ApiService();
