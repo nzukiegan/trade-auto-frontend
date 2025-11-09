@@ -279,10 +279,6 @@ export default function TapxWallet() {
     }
   };
 
-  const handleDeposit = async () => {
-
-  }
-
   const handleConvert = async () => {
 
   }
