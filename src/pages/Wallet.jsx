@@ -233,6 +233,7 @@ export default function TapxWallet() {
     if (!walletAddress) return;
     try {
       const res = await apiService.get(`/withdrawals/${walletAddress}`);
+      console.log("Withdrawal response ", res)
       setWithdrawals(res.data || []);
     } catch (err) {
       console.error("Failed to load withdrawals:", err);
