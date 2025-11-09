@@ -208,7 +208,7 @@ class ApiService {
   }
 
   async getWithdrawals(walletAddress){
-    const res = await this.client.get(`/withdrawals/${walletAddress}`);
+    const res = await this.client.get(`/api/wallet/withdrawals/${walletAddress}`);
     return res.data;
   }
 }
