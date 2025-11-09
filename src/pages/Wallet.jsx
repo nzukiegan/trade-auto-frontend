@@ -72,12 +72,11 @@ export default function TapxWallet() {
   };
 
   useEffect(() => {
-    if (!tonConnect) return;
 
     const checkConnection = async () => {
-      const wallet = tonConnect.account;
-
-      if (wallet && !walletConnected) {
+      
+      if (tonConnect) {
+        const wallet = tonConnect.account;
         setWalletAddress(wallet.address);
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
@@ -95,13 +94,12 @@ export default function TapxWallet() {
     const interval = setInterval(checkConnection, 2000);
 
     return () => clearInterval(interval);
-  }, [tonConnect, walletConnected]);
+  }, []);
 
   const handleConnectWallet = async () => {
     try {
       await tonConnect.connectWallet();
       const wallet = tonConnect.account;
-      console.log("Connected wallet ", wallet);
       if (wallet) {
         setWalletAddress(wallet.address);
         setWalletConnected(true);
