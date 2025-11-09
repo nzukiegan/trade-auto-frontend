@@ -41,7 +41,7 @@ export default function TapxWallet() {
 
       try {
         if (user?.walletAddress) {
-          setWalletAddress(parseAddress(user.walletAddress));
+          setWalletAddress(user.walletAddress);
           setWalletConnected(true);
           await loadAssets();
           await loadWithdrawals();
@@ -55,7 +55,7 @@ export default function TapxWallet() {
       const wallet = connector.account;
       console.log("Wallet ", wallet);
       if (wallet) {
-        setWalletAddress(parseAddress(wallet.address));
+        setWalletAddress(wallet.address);
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
@@ -106,7 +106,7 @@ export default function TapxWallet() {
       const wallet = tonConnect.account;
 
       if (wallet && !walletConnected) {
-        setWalletAddress(parseAddress(wallet.address));
+        setWalletAddress(wallet.address);
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
@@ -134,7 +134,7 @@ export default function TapxWallet() {
       const wallet = tonConnect.account;
       console.log("Connected wallet ", wallet);
       if (wallet) {
-        setWalletAddress(parseAddress(wallet.address));
+        setWalletAddress(wallet.address);
         setWalletConnected(true);
         await apiService.connectWallet(wallet.address);
         await loadAssets();
