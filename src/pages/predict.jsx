@@ -146,7 +146,7 @@ const Predict = () => {
       return;
     }
 
-    const existingBet = prediction.participants?.find(
+    const existingBet = (prediction.participants || []).find(
       p => p.user === userId || p.walletAddress === userWalletAddress
     );
 
