@@ -104,8 +104,8 @@ const Predict = () => {
 
   const handleCreatePrediction = async (e) => {
     e.preventDefault();
-    if (!tonConnect.openModal()) {
-      tonConnect.connectWallet();
+    if (!tonConnect) {
+      tonConnect.openModal()
       return;
     }
 
