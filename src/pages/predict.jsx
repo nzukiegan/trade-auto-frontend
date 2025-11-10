@@ -135,7 +135,7 @@ const Predict = () => {
 
 
   const handlePlaceBet = async (predictionId, betType) => {
-    const userWalletAddress = connector.wallet.account.address;
+    const userWalletAddress = tonConnect.wallet.account.address;
     const tonamount = await usdToTon(bettingAmount)
     const amountNano = toNano(tonamount);
 
@@ -145,7 +145,7 @@ const Predict = () => {
       body: "Payment for bet placement",
     };
 
-    await connector.sendTransaction({
+    await tonConnect.sendTransaction({
       validUntil: Math.floor(Date.now() / 1000) + 60,
       messages: [transferMessage],
     });
@@ -175,7 +175,6 @@ const Predict = () => {
     const noPool = prediction.totalPool?.no || 0;
     const totalPool = yesPool + noPool;
 
-    // Default fees to 0 if not defined
     const platformFee = prediction.platformFee || 0;
     const creatorFee = prediction.creatorFee || 0;
 
@@ -183,7 +182,6 @@ const Predict = () => {
       return { yes: 1.0, no: 1.0 };
     }
 
-    // Apply fee deductions
     const feeAmount = totalPool * (platformFee + creatorFee);
     const winningPool = totalPool - feeAmount;
 
