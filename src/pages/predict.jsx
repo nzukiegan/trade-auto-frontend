@@ -145,10 +145,10 @@ const Predict = () => {
       body: "Payment for bet placement",
     };
 
-    await tonConnect.sendTransaction({
-      validUntil: Math.floor(Date.now() / 1000) + 60,
-      messages: [transferMessage],
-    });
+    //await tonConnect.sendTransaction({
+    //  validUntil: Math.floor(Date.now() / 1000) + 60,
+    //  messages: [transferMessage],
+    //});
 
     setLoading(true);
     try {
@@ -485,7 +485,7 @@ const Predict = () => {
                           className="w-16 h-5 mt-2 object-contain"
                         />
                         <div className="text-gray-500 text-xs mt-1">
-                          {prediction.participants.length} Participants
+                          {prediction.participants?.length ?? 0} Participants
                         </div>
                       </div>
                     </div>
