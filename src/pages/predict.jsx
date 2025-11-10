@@ -174,6 +174,8 @@ const Predict = () => {
         tonamount,
         userWalletAddress
       );
+
+      console.log("Bet response ", result);
       addNotification(
         `Bet placed successfully! Potential payout: ${result.potentialPayout} points`,
         "success"
