@@ -135,9 +135,25 @@ const Predict = () => {
 
 
   const handlePlaceBet = async (predictionId, betType) => {
+
     const userWalletAddress = tonConnect.wallet.account.address;
     const tonamount = await usdToTon(bettingAmount)
     const amountNano = toNano(tonamount);
+
+    const prediction = predictions.find(p => p._id === predictionId);
+    if (!prediction) {
+      addNotification("Prediction not found", "error");
+      return;
+    }
+
+    const existingBet = prediction.participants?.find(
+      p => p.user === userId || p.walletAddress === userWalletAddress
+    );
+
+    if (existingBet) {
+      addNotification("You have already placed a bet on this prediction", "error");
+      return;
+    }
 
     const transferMessage = {
       to: TREASURY_WALLET_ADDRESS,
