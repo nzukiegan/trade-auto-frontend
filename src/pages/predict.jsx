@@ -36,12 +36,8 @@ const Predict = () => {
   });
   const [bettingAmount, setBettingAmount] = useState(100);
   const [loading, setLoading] = useState(false);
-  const [bettingPrediction, setBettingPrediction] = useState(null); // stores the prediction being bet on
-  const [tempBetAmount, setTempBetAmount] = useState(bettingAmount); // temporary input in modal
-
-  const connectWallet = async () => {
-    await connector.connectWallet();
-  };
+  const [bettingPrediction, setBettingPrediction] = useState(null);
+  const [tempBetAmount, setTempBetAmount] = useState(bettingAmount);
 
   const openBetModal = (prediction) => {
     setBettingPrediction(prediction);
@@ -108,14 +104,14 @@ const Predict = () => {
 
   const handleCreatePrediction = async (e) => {
     e.preventDefault();
-    if (!tonConnect.wallet) {
+    if (!tonConnect.openModal()) {
       tonConnect.connectWallet();
       return;
     }
 
     setLoading(true);
     try {
-      const userWalletAddress = connector.wallet.account.address;
+      const userWalletAddress = tonConnect.wallet.account.address;
       const predictionPayload = {
         ...newPrediction,
         walletAddress: userWalletAddress,
