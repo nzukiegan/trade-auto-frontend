@@ -108,10 +108,10 @@ const Predict = () => {
 
   const handleCreatePrediction = async (e) => {
     e.preventDefault();
-      if (!connector.wallet) {
-        connectWallet();
-        return;
-      }
+    if (!tonConnect.wallet) {
+      tonConnect.connectWallet();
+      return;
+    }
 
     setLoading(true);
     try {
