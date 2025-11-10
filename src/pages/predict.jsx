@@ -364,9 +364,6 @@ const Predict = () => {
               <h3 className="font-semibold text-lg mb-1">
                 Create New Prediction
               </h3>
-              <p className="text-xs text-gray-500 mb-3">
-                ⚡Contract Deployment Fee: 0.1 TON
-              </p>
               <form onSubmit={handleCreatePrediction} className="space-y-3">
                 <input
                   type="text"
