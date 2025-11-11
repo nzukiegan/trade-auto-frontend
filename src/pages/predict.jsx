@@ -171,7 +171,7 @@ const Predict = () => {
       const result = await apiService.placeBet(
         predictionId,
         betType,
-        tonamount,
+        bettingAmount,
         userWalletAddress
       );
 
