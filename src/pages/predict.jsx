@@ -496,7 +496,7 @@ const Predict = () => {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex gap-3">
-                      <img src={bear} alt="bear" className="w-10 h-10" />
+                      <img src={bear} alt="bear" className="w-10 h-12" />
                       <div>
                         <p className="text-sm font-medium leading-tight">
                           {prediction.question}
