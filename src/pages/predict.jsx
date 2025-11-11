@@ -305,7 +305,9 @@ const Predict = () => {
               <div className="text-gray-800 text-sm ml-[6px]">Total Volume</div>
             </div>
 
-            <h3 className="text-lg font-semibold mt-1">{totalVolume}</h3>
+            <h3 className="text-lg font-semibold mt-1">
+              {Number(totalVolume).toFixed(2)}
+            </h3>
 
             <div className="flex items-center justify-center gap-1 mt-1">
               {marketVolumeDirection === "increase" && (
@@ -335,7 +337,9 @@ const Predict = () => {
               <div className="text-gray-800 text-sm ml-[6px]">Active Markets</div>
             </div>
 
-            <h3 className="text-lg font-semibold mt-1">{activeVolume}</h3>
+            <h3 className="text-lg font-semibold mt-1">
+              {Number(activeVolume).toFixed(2)}
+            </h3>
 
             <div className="flex items-center justify-center gap-1 mt-1">
               {activeMarketsChangeDirection === "increase" && (
@@ -497,11 +501,6 @@ const Predict = () => {
                         <p className="text-sm font-medium leading-tight">
                           {prediction.question}
                         </p>
-                        <img
-                          src={avatars}
-                          alt="avatars"
-                          className="w-16 h-5 mt-2 object-contain"
-                        />
                         <div className="text-gray-500 text-xs mt-1">
                           {prediction.participants?.length ?? 0} Participants
                         </div>
