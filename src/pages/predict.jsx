@@ -540,7 +540,7 @@ const Predict = () => {
                       disabled={loading}
                       className="bg-gray-200 flex-1 py-2 rounded-lg text-sm font-medium"
                     >
-                      Predict No ({prediction.odds.yes}x)
+                      Predict No ({prediction.odds.no}x)
                     </button>
                   </div>
                 </div>
