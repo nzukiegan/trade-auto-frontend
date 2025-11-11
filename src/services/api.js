@@ -128,6 +128,7 @@ class ApiService {
   }
 
   async placeBet(predictionId, betType, amount, userAddress) {
+    console.log("Bet: ", predictionId, betType, amount, userAddress)
     const response = await this.client.post('/api/predictions/bet', {
       predictionId,
       betType,
