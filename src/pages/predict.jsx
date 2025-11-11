@@ -522,7 +522,7 @@ const Predict = () => {
 
                   <div className="bg-gray-200 h-2 rounded-full mt-3 overflow-hidden">
                     <div
-                      className="bg-yellow-400 h-full"
+                      className="bg-green-400 h-full"
                       style={{ width: `${yesPercent}%` }}
                     ></div>
                   </div>
@@ -533,14 +533,14 @@ const Predict = () => {
                       disabled={loading}
                       className="bg-green-500 text-white flex-1 py-2 rounded-lg text-sm font-medium"
                     >
-                      Predict Yes ({odds.yes}x)
+                      Predict Yes ({prediction.odds.yes}x)
                     </button>
                     <button
                       onClick={() => openBetModal({ ...prediction, choice: "no" })}
                       disabled={loading}
                       className="bg-gray-200 flex-1 py-2 rounded-lg text-sm font-medium"
                     >
-                      Predict No ({odds.no}x)
+                      Predict No ({prediction.odds.yes}x)
                     </button>
                   </div>
                 </div>
