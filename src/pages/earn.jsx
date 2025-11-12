@@ -57,6 +57,7 @@ const Earn = () => {
   const loadAvailableTasks = async () => {
     try {
       const tasks = await apiService.getAvailableTasks();
+      console.log(tasks)
       setAvailableTasks(tasks.tasks);
     } catch (error) {
       console.error("Failed to load ads:", error);
