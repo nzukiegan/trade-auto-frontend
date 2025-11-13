@@ -240,7 +240,7 @@ const Earn = () => {
                   <div className="font-semibold text-sm text-gray-900">{nextAdTask.title}</div>
                   <div className="text-xs text-gray-500">{nextAdTask.description}</div>
                   <div className="text-xs text-gray-600 mt-1">
-                    Reward: <span className="text-green-600 font-semibold">{nextAdTask.rewardPoints} pts</span> | Energy: <span className="text-yellow-600 font-semibold">{nextAdTask.rewardEnergy}</span>
+                    Reward: <span className="text-green-600 font-semibold">{nextAdTask.pointsReward} pts</span> | Energy: <span className="text-yellow-600 font-semibold">{nextAdTask.energyReward}</span>
                   </div>
                 </div>
               </div>
